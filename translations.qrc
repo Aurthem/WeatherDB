@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>lang/WeatherDB_ru_RU.qm</file>
+        <file>lang/default_ru_RU.qm</file>
+    </qresource>
+</RCC>
