@@ -6,7 +6,6 @@
 CheckboxHeader::CheckboxHeader(Qt::Orientation orientation, QWidget* parent)
 	: QHeaderView(orientation, parent)
 {
-//	isChecked_ = true;
 	connect(this, SIGNAL(sectionResized(int, int, int)), this,
 					SLOT(handleSectionResized(int)));
 	connect(this, SIGNAL(sectionMoved(int, int, int)), this,
@@ -14,11 +13,6 @@ CheckboxHeader::CheckboxHeader(Qt::Orientation orientation, QWidget* parent)
 //	setSectionsMovable(true);
 //	setSectionsClickable(true);
 }
-//void CheckboxHeader::setSectionHidden(int logicalIndex, bool hide) {
-//	updateBoxes();
-//	if(boxes.contains(logicalIndex)) boxes[logicalIndex]->setHidden(hide);
-//	QHeaderView::setSectionHidden(logicalIndex,hide);
-//}
 
 QList<int> CheckboxHeader::getCheckedBoxes(void) const {
 	QList<int> result;
@@ -29,21 +23,7 @@ QList<int> CheckboxHeader::getCheckedBoxes(void) const {
 	return result;
 }
 
-//void CheckboxHeader::setModel(QAbstractItemModel * model) {
-//	if(this->model())
-//		disconnect(this->model(),&QAbstractItemModel::modelReset,this,&CheckboxHeader::onResetModel);
-
-//	QHeaderView::setModel(model);
-
-//	connect(model,&QAbstractItemModel::modelReset,this,&CheckboxHeader::onResetModel);
-//}
-//void CheckboxHeader::onResetModel() {
-//	qDebug()<<"hide section0";
-//	hideSection(0);
-//}
-
 void CheckboxHeader::handleSectionResized(int idx) {
-//	updateBoxes();
 	for (int j=visualIndex(idx); j<count(); ++j) {
 		int logical = logicalIndex(j);
 		if(logical==0) continue;	//skip id row (model specific)
@@ -57,8 +37,8 @@ void CheckboxHeader::handleSectionResized(int idx) {
 		}
 	}
 }
-void CheckboxHeader::handleSectionMoved(int /*logical*/, int oldVisualIndex, int newVisualIndex) {
-//	updateBoxes();
+void CheckboxHeader::handleSectionMoved(int logical, int oldVisualIndex, int newVisualIndex) {
+	Q_UNUSED(logical)
 	for (int idx=qMin(oldVisualIndex, newVisualIndex);idx<count();++idx){
 		int logical = logicalIndex(idx);
 		if(logical==0) continue;	//skip id row (model specific)
@@ -76,8 +56,6 @@ void CheckboxHeader::handleRowsHidden() {
 	QList<int> indexHidden;
 	for(QMap<int,QCheckBox*>::iterator itr=boxes.begin();
 			itr!=boxes.end();++itr) {
-//		if(itr.key()==0) continue;	//skip id row (model specific)
-//		qDebug()<<itr.key()<<itr.value()->isChecked();
 		if(itr.value()->isChecked()) {
 			hideSection(itr.key());
 			indexHidden.append(itr.key());
@@ -105,7 +83,6 @@ void CheckboxHeader::handleRowsShown() {
 }
 
 void CheckboxHeader::fixBoxPositions() {
-//	updateBoxes();
 	for (int idx=1; idx<count(); ++idx) {	//start from 1 to exclude id row
 		updateBox(idx);
 		if(orientation()==Qt::Horizontal) {
@@ -120,7 +97,6 @@ void CheckboxHeader::fixBoxPositions() {
 }
 
 void CheckboxHeader::reset() {
-//	qDebug()<<"boxes size1: "<<boxes.size();
 	QHeaderView::reset();
 	int idx=0;
 	while(++idx<count()) {	//skip id row
@@ -142,33 +118,9 @@ void CheckboxHeader::reset() {
 	//after row removal there's hidden id row (which is not hidden, but not shown) on top which can be navigated to with keyboard
 	//it also messes up column selection; but if any column is hidden, it's correct until all columns are shown
 	//after tab reopens, everything is ok again
-
-//	hideSection(0);	//doesn't work on row removal
-//	for(QCheckBox* box: boxes) {
-//		delete box;
-//	}
-//	boxes.clear();
-//	fixBoxPositions();
-//	showEvent(new QShowEvent());
-//	update();
-//	hide();
-//	show();
-//	doItemsLayout();
-//	qDebug()<<"boxes size2: "<<boxes.size();
 }
 
-//void CheckboxHeader::update() {
-//	for (int idx=0; idx<count(); ++idx) {
-//		if (!boxes[idx]) {
-//			QCheckBox *box = new QCheckBox(this);
-//			boxes[idx] = box;
-//		}
-//	}
-//	QHeaderView::update();
-//}
-
-/*void CheckboxHeader::paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const
-{
+/*void CheckboxHeader::paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const {
 	painter->save();
 	QHeaderView::paintSection(painter, rect, logicalIndex);
 	painter->restore();
@@ -184,14 +136,13 @@ void CheckboxHeader::reset() {
 			option.state |= QStyle::State_On;
 		else
 			option.state |= QStyle::State_Off;
-//		option.state |= QStyle::State_Off;
 
 //		style()->drawPrimitive(QStyle::PE_IndicatorCheckBox, &option, painter);
 		style()->drawControl(QStyle::CE_CheckBox, &option, painter);
 //	}
 }*/
-void CheckboxHeader::showEvent(QShowEvent *event)
-{
+
+void CheckboxHeader::showEvent(QShowEvent *event) {
 	for (int idx=1; idx<count(); ++idx) {	//start from 1 to exclude id row
 		updateBox(idx);
 		if(orientation()==Qt::Horizontal) {
@@ -199,8 +150,6 @@ void CheckboxHeader::showEvent(QShowEvent *event)
 				boxes[idx]->minimumSizeHint().width(), boxes[idx]->minimumSizeHint().height());
 		} else {
 			boxes[idx]->setGeometry(2, sectionViewportPosition(idx)+(sectionSize(idx)-boxes[idx]->minimumSizeHint().height())/2,
-//				width(), sectionSize(idx));
-//				boxes[idx]->size().width(), boxes[idx]->size().height());
 					boxes[idx]->minimumSizeHint().width(), boxes[idx]->minimumSizeHint().height());
 		}
 //		if(!boxes[idx]->isHidden()) boxes[idx]->show();
@@ -209,36 +158,8 @@ void CheckboxHeader::showEvent(QShowEvent *event)
 	QHeaderView::showEvent(event);
 }
 
-//void CheckboxHeader::updateBoxes() {
-//	for (int idx=0; idx<count(); ++idx) {
-//		if (!boxes.contains(idx)) {
-//			QCheckBox *box = new QCheckBox(this);
-//			boxes.insert(idx, box);
-//		}
-//	}
-//}
 void CheckboxHeader::updateBox(int index) {
 	if (!boxes.contains(index)) {
 		boxes.insert(index, new QCheckBox(this));
 	}
 }
-
-//void CheckboxHeader::mouseReleaseEvent(QMouseEvent* event)
-//{
-//	setIsChecked(!isChecked());
-
-//	emit checkBoxClicked(isChecked());
-//}
-
-//void CheckboxHeader::redrawCheckBox()
-//{
-//	viewport()->update();
-//}
-
-//void CheckboxHeader::setIsChecked(bool val)
-//{
-//	if (isChecked_ != val) {
-//		isChecked_ = val;
-//		redrawCheckBox();
-//	}
-//}

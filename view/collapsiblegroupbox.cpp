@@ -64,33 +64,6 @@ void CollapsibleGroupBox::paintEvent(QPaintEvent */*event*/) {
 	QStylePainter paint( this );
 	QStyleOptionGroupBox option;
 	initStyleOption( &option );
-//	paint.drawPrimitive(QStyle::PE_IndicatorSpinDown,option);
-//	option.subControls &= ~QStyle::SC_GroupBoxCheckBox;
-//	option.subControls |= QStyle::SC_SpinBoxFrame;
-
-//	paint.drawComplexControl( QStyle::CC_GroupBox, option );
-
-//	option.rect = style()->subControlRect( QStyle::CC_GroupBox, &option,
-//																				 QStyle::SC_GroupBoxCheckBox, this );
-//	SC_ComboBoxArrow;
-////now erase the checkbox
-//	paint.save();
-//	QPixmap px( option.rect.width(), option.rect.height() );
-//	px.fill( this, option.rect.left(), option.rect.top() );
-//	QBrush brush( px );
-//	paint.fillRect( option.rect, brush );
-//	paint.restore();
-//// and replace it with a radio button
-//	paint.drawPrimitive( QStyle::PE_IndicatorRadioButton, option );
-
-//	option.rect=QRect(0,0,10,10);// rect.adjusted(0, 0, -10, 0);
-//	paint.drawPrimitive(QStyle::PE_IndicatorSpinDown,option);
-//	paint.drawItemPixmap(
-//				option.rect.adjusted( 0, 0, -10, 0 ),
-//				Qt::AlignTop | Qt::AlignRight,
-//				QPixmap( m_collapsed ?
-//									 ":/images/images/navigate_down2_16x16.png" :
-//									 ":/images/images/navigate_up2_16x16.png" ) );
 
 	//directly from qcommonstyle.cpp
 	QRect textRect = style()->subControlRect(QStyle::CC_GroupBox, &option, QStyle::SC_GroupBoxLabel, this);
@@ -154,5 +127,4 @@ void CollapsibleGroupBox::paintEvent(QPaintEvent */*event*/) {
 			style()->drawPrimitive(QStyle::PE_IndicatorSpinPlus, &box, &paint, this);
 //		style()->drawPrimitive(QStyle::PE_IndicatorBranch, &box, &paint, this);
 	}
-
 }

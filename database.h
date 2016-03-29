@@ -14,19 +14,13 @@ class DBModel;
 
 class Database : public QObject //singleton
 {	Q_OBJECT
-//	Q_DECLARE_TR_FUNCTIONS(Database)	//for translation context "tr()"
 public:
 	static Database& getInstance() {
 		static Database instance;
 		return instance;
 	}
-//	static Database* getInstance() {
-//		if(!instance) instance=new Database();
-//		return instance;
-//	}
-//	QSqlDatabase database;
 	DBModel *model;
-	virtual ~Database();	//should work, I think
+	virtual ~Database();
 
 	void finalize(void);
 

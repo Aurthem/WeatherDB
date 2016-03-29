@@ -32,7 +32,7 @@ ChangeAddDialog::ChangeAddDialog(const QList<int> &checked, QWidget *parent)
 		}
 	}
 	int row=0;
-	enableDBEdit = new QCheckBox(tr("Разрешить изменение базы данных"));
+	enableDBEdit = new QCheckBox(tr("Allow database to be changed"));
 	enableDBEdit->setChecked(false);
 	mainLayout->addWidget(enableDBEdit,row++,0,1,-1,Qt::AlignLeft);
 	for(const QString &name: orderingMarked) {
@@ -53,10 +53,10 @@ ChangeAddDialog::ChangeAddDialog(const QList<int> &checked, QWidget *parent)
 		contents.append(record);
 	}
 	if(!ordering.isEmpty()) {
-		mainLayout->addWidget(new QLabel(tr("Номер")),row,0,Qt::AlignLeft);
-		mainLayout->addWidget(new QLabel(tr("Имя строки")),row,1,Qt::AlignLeft);
-		mainLayout->addWidget(new QLabel(tr("Минимум")),row,2,Qt::AlignLeft);
-		mainLayout->addWidget(new QLabel(tr("Максимум")),row,3,Qt::AlignLeft);
+		mainLayout->addWidget(new QLabel(tr("Number")),row,0,Qt::AlignLeft);
+		mainLayout->addWidget(new QLabel(tr("Row name")),row,1,Qt::AlignLeft);
+		mainLayout->addWidget(new QLabel(tr("Minimum")),row,2,Qt::AlignLeft);
+		mainLayout->addWidget(new QLabel(tr("Maximum")),row,3,Qt::AlignLeft);
 		++row;
 	}
 	for(const QString &name: ordering) {
@@ -75,21 +75,19 @@ ChangeAddDialog::ChangeAddDialog(const QList<int> &checked, QWidget *parent)
 		contents.append(record);
 	}
 
-	QPushButton *confirm=new QPushButton(tr("Записать"));
+	QPushButton *confirm=new QPushButton(tr("Write"));
 	confirm->setDefault(true);
-	QPushButton *reject=new QPushButton(tr("Отмена"));
+	QPushButton *reject=new QPushButton(tr("Cancel"));
 	QDialogButtonBox *buttons=new QDialogButtonBox(Qt::Horizontal);
 	buttons->addButton(confirm,QDialogButtonBox::AcceptRole);
 	buttons->addButton(reject,QDialogButtonBox::RejectRole);
-//	connect(confirm,&QPushButton::clicked,this,&CustomSearchDialog::accept);
-//	connect(reject,&QPushButton::clicked,this,&CustomSearchDialog::reject);
 	connect(confirm,&QPushButton::clicked,this,&ChangeAddDialog::accept);
 	connect(reject,&QPushButton::clicked,this,&ChangeAddDialog::reject);
 
 	mainLayout->addWidget(buttons,row,0,1,-1,Qt::AlignRight);
 	setLayout(mainLayout);
 //	layout()->setSizeConstraint(QLayout::SetFixedSize);
-	setWindowTitle(tr("Изменить строки"));
+	setWindowTitle(tr("Change rows"));
 }
 ChangeAddDialog::ChangeAddDialog(const QString &defaultType, QWidget *parent)
 	: QDialog(parent), state(Add), enableDBEdit(0)
@@ -97,21 +95,18 @@ ChangeAddDialog::ChangeAddDialog(const QString &defaultType, QWidget *parent)
 	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
 	QGridLayout *mainLayout=new QGridLayout;
-//	mainLayout->setVerticalSpacing(0);
-
-//	const QMap<QString,QList<QVariant> > &dbMap=Database::getInstance().settings.database;
 
 	int row=0, column=0;
-	mainLayout->addWidget(new QLabel(tr("Номер")),row,0,Qt::AlignLeft);
-	mainLayout->addWidget(new QLabel(tr("Имя строки")),row,1,Qt::AlignLeft);
-	mainLayout->addWidget(new QLabel(tr("Метка")),row,2,Qt::AlignLeft);
-	QLabel *numberLabel=new QLabel(tr("Число"));
+	mainLayout->addWidget(new QLabel(tr("Number")),row,0,Qt::AlignLeft);
+	mainLayout->addWidget(new QLabel(tr("Row name")),row,1,Qt::AlignLeft);
+	mainLayout->addWidget(new QLabel(tr("Mark")),row,2,Qt::AlignLeft);
+	QLabel *numberLabel=new QLabel(tr("Value"));
 	mainLayout->addWidget(numberLabel,row,3,Qt::AlignLeft);
-	QLabel *minLabel=new QLabel(tr("Минимум"));
+	QLabel *minLabel=new QLabel(tr("Minimum"));
 	mainLayout->addWidget(minLabel,row,4,Qt::AlignLeft);
-	QLabel *maxLabel=new QLabel(tr("Максимум"));
+	QLabel *maxLabel=new QLabel(tr("Maximum"));
 	mainLayout->addWidget(maxLabel,row,5,Qt::AlignLeft);
-	QLabel *defaultLabel=new QLabel(tr("По умолчанию"));
+	QLabel *defaultLabel=new QLabel(tr("Default"));
 	mainLayout->addWidget(defaultLabel,row,6,Qt::AlignLeft);
 	++row;
 
@@ -130,9 +125,8 @@ ChangeAddDialog::ChangeAddDialog(const QString &defaultType, QWidget *parent)
 	mainLayout->addWidget(checkMark,row,column++,Qt::AlignCenter);
 	record.append(checkMark);
 	QComboBox *typeCombo=new QComboBox;
-//	typeCombo->addItems({"integer","real","mark"});
-	typeCombo->addItem(tr("Целое"),QString("integer"));
-	typeCombo->addItem(tr("Действительное"),QString("real"));
+	typeCombo->addItem(tr("Integer"),QString("integer"));
+	typeCombo->addItem(tr("Real"),QString("real"));
 	int currentIndex=-1;
 	for(int idx=0; idx<typeCombo->count(); ++idx) {
 		if(!typeCombo->itemData(idx).toString().compare(defaultType)) {
@@ -146,7 +140,6 @@ ChangeAddDialog::ChangeAddDialog(const QString &defaultType, QWidget *parent)
 //	++row;
 	contents.append(record); record.clear();
 	int columnCut=column;
-//	mainLayout->addWidget(new QLabel("integer"),row,column++,Qt::AlignLeft);
 	for(QWidget* item: createNumberEditor("integer",QList<QVariant>(),true)) {
 		mainLayout->addWidget(item,row,column++,Qt::AlignLeft);
 		record.append(item);
@@ -159,7 +152,6 @@ ChangeAddDialog::ChangeAddDialog(const QString &defaultType, QWidget *parent)
 //	++row;
 	column=columnCut;
 	contents.append(record); record.clear();
-//	mainLayout->addWidget(new QLabel("real"),row,column++,Qt::AlignLeft);
 	for(QWidget* item: createNumberEditor("real",QList<QVariant>(),true)) {
 		mainLayout->addWidget(item,row,column++,Qt::AlignLeft);
 		record.append(item);
@@ -175,7 +167,7 @@ ChangeAddDialog::ChangeAddDialog(const QString &defaultType, QWidget *parent)
 
 	connect(typeCombo,static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),	//because of overload
 	[this](int newIdx) {
-		for(QWidget* item: contents.value(newIdx+1)) {	//show first to avoid shrinking
+		for(QWidget* item: contents.value(newIdx+1)) {	//show first to avoid dialog shrinking
 			item->show();
 		}
 		for(int listIdx=0; listIdx<2; ++listIdx) if(listIdx!=newIdx) {
@@ -185,7 +177,6 @@ ChangeAddDialog::ChangeAddDialog(const QString &defaultType, QWidget *parent)
 		}
 	});
 
-//	mainLayout->addWidget(new QLabel("mark"),row,column++,Qt::AlignLeft);
 	QHBoxLayout *markLayout=new QHBoxLayout;
 	for(QWidget* item: createColorCombo(QList<QVariant>())) {
 		markLayout->addWidget(item);
@@ -242,21 +233,19 @@ ChangeAddDialog::ChangeAddDialog(const QString &defaultType, QWidget *parent)
 	++row;
 	contents.append(record); record.clear();
 
-	QPushButton *confirm=new QPushButton(tr("Записать"));
+	QPushButton *confirm=new QPushButton(tr("Write"));
 	confirm->setDefault(true);
-	QPushButton *reject=new QPushButton(tr("Отмена"));
+	QPushButton *reject=new QPushButton(tr("Cancel"));
 	QDialogButtonBox *buttons=new QDialogButtonBox(Qt::Horizontal);
 	buttons->addButton(confirm,QDialogButtonBox::AcceptRole);
 	buttons->addButton(reject,QDialogButtonBox::RejectRole);
-//	connect(confirm,&QPushButton::clicked,this,&CustomSearchDialog::accept);
-//	connect(reject,&QPushButton::clicked,this,&CustomSearchDialog::reject);
 	connect(confirm,&QPushButton::clicked,this,&ChangeAddDialog::accept);
 	connect(reject,&QPushButton::clicked,this,&ChangeAddDialog::reject);
 
 	mainLayout->addWidget(buttons,row,0,1,-1,Qt::AlignRight);
 	setLayout(mainLayout);
 	layout()->setSizeConstraint(QLayout::SetFixedSize);	//auto-resize
-	setWindowTitle(tr("Новая строка"));
+	setWindowTitle(tr("New row"));
 }
 
 QList<QWidget*> ChangeAddDialog::createEntryTitle(const QString &name, int index) const {
@@ -293,8 +282,8 @@ QList<QWidget*> ChangeAddDialog::createColorCombo(const QList<QVariant> &paramet
 	minus->setFixedWidth(20);
 	result.append(plus); result.append(minus);
 	connect(plus,&QPushButton::clicked,[=]{
-//			const QColorDialog::ColorDialogOptions options=QColorDialog::ShowAlphaChannel;
-		const QColor color = QColorDialog::getColor(Qt::white, colorCombo, tr("Выберите цвет метки"));//, options);
+//		const QColorDialog::ColorDialogOptions options=QColorDialog::ShowAlphaChannel;
+		const QColor color = QColorDialog::getColor(Qt::white, colorCombo, tr("Select mark color"));//, options);
 		if(color.isValid()) {
 			colorCombo->addItem(color.name(),color);
 		}
@@ -308,11 +297,9 @@ QList<QWidget*> ChangeAddDialog::createNumberEditor(const QString &type, const Q
 	QList<QWidget*> result;
 	DBEditor *editLeft=new DBEditor(type,parameters);
 	editLeft->setValue(parameters.value(0));
-//	editLeft->setValidator(0);
 //	if(editor->getType()==DBEditor::Unknown); //acts like normal QLineEdit
 	DBEditor *editRight=new DBEditor(type,parameters);
 	editRight->setValue(parameters.value(1));
-//	editRight->setValidator(0);
 	DBEditor *defaultEditor=0;
 	if(setDefault) {
 		defaultEditor=new DBEditor(type,parameters);

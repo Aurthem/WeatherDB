@@ -44,7 +44,7 @@ HEADERS  += mainwindow.h \
 	dialogs/changeadddialog.h \
 	dialogs/customsearchdialog.h
 
-VERSION = 0.9.7.0
+VERSION = 0.9.9.0
 #QMAKE_TARGET_COMPANY = company
 QMAKE_TARGET_PRODUCT = WeatherDB
 QMAKE_TARGET_DESCRIPTION = "Weather Database"

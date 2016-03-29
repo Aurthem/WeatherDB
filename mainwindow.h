@@ -20,14 +20,8 @@ protected:
 private slots:
 	void newFile();
 	void open();
-//	void save();
-	void undo();
-	void redo();
 	void copy();
 	void about();
-
-//	void emitToggledNumberRepresentation(void);
-//	void emitSearchRequested(void);
 
 signals:
 	void toggledNumberRepresentation(bool vertical);
@@ -41,13 +35,9 @@ private:
 	QMenu *fileMenu;
 	QMenu *viewMenu;
 	QMenu *helpMenu;
-//	QActionGroup *fileGroup;	//use group for "choose one" options
 	QAction *newAct;
 	QAction *openAct;
-//	QAction *saveAct;
 	QAction *exitAct;
-//	QAction *undoAct;
-//	QAction *redoAct;
 	QAction *searchAct;
 	QAction *toggleVertical;
 	QAction *toggleAdvanced;

@@ -26,14 +26,10 @@ Database::Database(QObject *parent) : QObject(parent), model(0), marks(0) {
 	marks->setTable("marks");
 	marks->select();
 
-//	connect(model,&DBModel::rowsAboutToBeRemoved,this,&Database::handleRowsRemoved);
-//	connect(model,&DBModel::columnsAboutToBeRemoved,this,&Database::handleColumnsRemoved);
-	//can't emit columnsAboutToBeRemoved in SQLite, connect to customColumnsAboutToBeRemoved in TabView
-
 	settings.refreshDatabase(model);
 }
 
-Database::~Database() {	//should work, I think
+Database::~Database() {
 	delete marks;
 	delete model;
 	database.close();
@@ -48,11 +44,10 @@ void Database::setupDatabase(const QString &fileName) {
 	if(database.isOpen()) database.close();
 	if(fileName.isEmpty() || !fileName.compare(database.databaseName())) return;
 	database.setDatabaseName(fileName);
-//	qDebug()<<database.databaseName();
 
 	if (!database.open()) {
-		QMessageBox::critical(0, tr("Невозможно открыть базу данных"),
-			tr("Не получилось установить соединение с базой данных"), QMessageBox::Cancel);
+		QMessageBox::critical(0, tr("Database could not be opened"),
+			tr("Failed to establish a connection to the database"), QMessageBox::Cancel);
 		exit(2);
 	}
 	QSqlQuery query(database);
@@ -82,16 +77,8 @@ void Database::setupDatabase(const QString &fileName) {
 
 Database::Settings::Settings() : myini(new QSettings("settings.ini",QSettings::IniFormat)) {
 	myini->setIniCodec("UTF-8");
-//	QString inifile("settings.ini");
-//	QSettings myini(inifile,QSettings::IniFormat);
-//	myini.clear();
 	int tmp_size=myini->beginReadArray("DB/fields");
 	if(tmp_size<1) {
-//		database=QMap<QString,QList<QVariant> >({
-//			{"Год",{1,0}},{"Месяц",{2,0}},{"День",{3,0}},
-//			{"Давление",{4,0}},{"Влажность",{5,0}},
-//			{"Ветер",{6,0}},{"Коэфф",{7,0}}
-//		});
 		database["id"]				={0,QString("integer primary key"),0};
 		database["Метка"]			={1,QString("integer"),1,"#ffffff","#555555"};
 		database["Год"]				={2,QString("integer"),0,1000,3000};
@@ -105,7 +92,6 @@ Database::Settings::Settings() : myini(new QSettings("settings.ini",QSettings::I
 	for(int idx=0; idx<tmp_size; ++idx) {
 		myini->setArrayIndex(idx);
 		QList<QVariant> tmp=myini->value("field").toList();
-//		database[tmp.value(0).toString()]=QList<QVariant>({tmp.value(1),tmp.value(2)});
 		database[tmp.value(0).toString()]=tmp.mid(1);
 	}
 	myini->endArray();
@@ -124,11 +110,6 @@ Database::Settings::Settings() : myini(new QSettings("settings.ini",QSettings::I
 		db_create["marks"]=myini->value("marks").toString();
 	}
 	myini->endArray();
-
-//	myini.setArrayIndex(1);
-//	QList<QVariant> tmp_list=myini.value("field").toList();
-//	QMessageBox *qmb=new QMessageBox(QMessageBox::Information,"Information",QString::number(tmp_list.value(2).toDouble()));
-//	qmb->show();	//.canConvert(QMetaType::Int)?"true":"false"
 }
 void Database::Settings::write() const {
 	myini->beginGroup("DB");
@@ -145,19 +126,12 @@ void Database::Settings::write() const {
 	}
 	myini->endArray();
 
-		myini->beginWriteArray("create");
-		myini->setArrayIndex(0);
-		myini->setValue("weather",db_create["weather"]);
-		myini->setArrayIndex(1);
-		myini->setValue("marks",db_create["marks"]);
-	//	myini->setValue("weather", "create table weather (id integer primary key, "
-	//		"Год integer, Месяц integer, День integer, Давление integer, "
-	//		"Влажность integer, Ветер integer, Коэфф real)");
-	//	myini->setArrayIndex(1);
-	//	myini->setValue("marks","create table marks (id integer primary key, "
-	//													"other_id int, row int, color varchar(8) )");
-	//	myini->endArray();
-		myini->endArray();
+	myini->beginWriteArray("create");
+	myini->setArrayIndex(0);
+	myini->setValue("weather",db_create["weather"]);
+	myini->setArrayIndex(1);
+	myini->setValue("marks",db_create["marks"]);
+	myini->endArray();
 
 	myini->endGroup();
 }
@@ -180,31 +154,6 @@ void Database::Settings::refreshDatabase(const DBModel *sourceModel) {
 }
 
 QColor Database::getMarkColor(const QModelIndex &idx) const {
-//	QSqlQuery tmp_query=
-//	marks->setQuery();
-//	QModelIndexList tmp=marks->match(marks->index(0,1),Qt::DisplayRole,
-//																	QString(idx.row()),-1,Qt::MatchExactly);
-//	QSqlQuery tmp_query(database);
-//	tmp_query.setForwardOnly(true);	//to speed up
-//	tmp_query.prepare("select color from marks where row=:row and column=:column");
-//	tmp_query.bindValue(":row",idx.row());
-//	tmp_query.bindValue(":column",idx.column());
-////	tmp_query.exec("SELECT color FROM marks WHERE row=1 and column=1");
-//	tmp_query.exec();
-//	QColor result;
-//	while(tmp_query.next()) {
-//		if(tmp_query.value(0).canConvert(QMetaType::QString)) {
-//			 result=QColor(tmp_query.value(0).toString().prepend("#"));
-//			 break;
-//		}
-//	}
-//	tmp_query.finish();
-//	return result;
-//	marks->setQuery(tmp_query);
-//	QString tmp_search("row=");
-//	tmp_search<<idx.row()<<"column="<<idx.column();
-//	marks->setFilter(tmp_search);
-
 	//faster than query method
 	for(int index=0; index<marks->rowCount(); ++index) {
 		QSqlRecord tmp=marks->record(index);
@@ -216,16 +165,6 @@ QColor Database::getMarkColor(const QModelIndex &idx) const {
 	return QColor();
 }
 void Database::setMarkColor(const QItemSelection &rangesSelected, const QColor &color) {
-//	if(rangesSelected.isEmpty()) return;
-//	QList<QAbstractItemModel*> modelStack;
-//	const QAbstractItemModel *tmp_model=rangesSelected.first().model();
-//	const QAbstractProxyModel *tmp_proxy;
-//	while(tmp_proxy=qobject_cast<QAbstractProxyModel*>(tmp_model)) {
-//		modelStack.append(tmp_proxy);
-//		tmp_model=tmp_proxy->sourceModel();
-//	}
-//	if(tmp_model!=model) qDebug()<<"Wrong end model!";
-//	modelStack.append(tmp_model);
 	QString colorString;
 	if(color.isValid()) {	//empty colorString will be used to erase marks
 		if(color.alpha()!=0 && color.name(QColor::HexRgb).compare("#ffffff")) {
@@ -254,7 +193,6 @@ void Database::setMarkColor(const QItemSelection &rangesSelected, const QColor &
 //	for(int index=0;index<marks->rowCount();++index) { qDebug()<<marks->record(index); }
 }
 void Database::insertMarkRecord(const QSqlRecord &recordWrite, int markRowCount) {
-//	qDebug()<<"inside"<<recordWrite.value(1);
 	for(int index=0;index<markRowCount;++index) {
 		if(marks->data(marks->index(index,1))!=recordWrite.value(1)) continue;
 		int row_top=marks->data(marks->index(index,2)).toInt(),
@@ -271,7 +209,6 @@ void Database::insertMarkRecord(const QSqlRecord &recordWrite, int markRowCount)
 					bottomRecord.setValue(3,marks->data(marks->index(index,3)));
 					bottomRecord.setValue(4,marks->data(marks->index(index,4)));
 					marks->setData(marks->index(index,3),new_row_top-1);
-//					marks->insertRecord(++index,bottomRecord);
 					marks->insertRecord(-1,bottomRecord);
 				} else {
 //					qDebug()<<index<<"trim bottom";
@@ -293,25 +230,11 @@ void Database::insertMarkRecord(const QSqlRecord &recordWrite, int markRowCount)
 }
 
 void Database::handleRowsRemoved(const QSet<int> &rowIds) {
-//	QSet<int> removed_ids;
-//	for(int row: rows) {
-//		removed_ids.insert(model->data(model->index(row,0),Qt::DisplayRole).toInt());
-//	}
-//	qDebug()<<rowIds;
 	for(int index=0; index<marks->rowCount();++index) {
 		if(rowIds.contains(marks->data(marks->index(index,1)).toInt())) {
 			marks->removeRow(index);
 		}
 	}
-//	for(int index=first;index<=last;++index) {
-//		removed_ids.append(model->data(model->index(index,0),Qt::DisplayRole).toInt());
-//	}
-//	for(int index=0; index<marks->rowCount();++index) {
-//		QSqlRecord tmp=marks->record(index);
-//		if(removed_ids.contains(tmp.value(1).toInt())) {
-//			marks->removeRow(index);
-//		}
-//	}
 	marks->submitAll();
 //	for(int index=0;index<marks->rowCount();++index) { qDebug()<<marks->record(index); }
 }
@@ -342,7 +265,6 @@ void Database::handleColumnsRemoved(const QList<int> &columns) {
 }
 
 void Database::handleColumnsRearranged(const QList<int> &newOrder) {
-//	qDebug()<<newOrder;
 	int markCount=marks->rowCount();	//rowCount changes after insertions
 	for(int index=0; index<markCount; ++index) {
 		int row_top=marks->data(marks->index(index,2)).toInt(),
@@ -353,7 +275,6 @@ void Database::handleColumnsRearranged(const QList<int> &newOrder) {
 			if(oldIdx>=row_top && oldIdx<=row_bottom) interval.append(newIdx);
 			++newIdx;
 		}
-//		qDebug()<<interval;
 //		std::sort(interval.begin(),interval.end());	//already sorted by construction
 		updateMarkRecord(interval,index);
 	}

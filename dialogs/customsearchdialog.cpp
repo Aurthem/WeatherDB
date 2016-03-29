@@ -23,19 +23,13 @@ CustomSearchDialog::CustomSearchDialog(QWidget *parent)
 		if(key && itr.value().value(2).toInt()!=1)	//skip id and invalid entries; skip "mark" type entries
 			ordering.insert(key,itr.key());
 	}
-//	for(QMap<QString,QList<QVariant> >::const_iterator itr=dbMap.constBegin(); itr!=dbMap.constEnd(); ++itr) {
-//		QHBoxLayout* entry=createEntry(itr.key(),itr.value());
-//		if(entry) mainLayout->addLayout(entry);
-//	}
 	for(const QString &name: ordering) {
-//		QHBoxLayout* entry=createEntry(name,dbMap.value(name));
-//		if(entry) mainLayout->addLayout(entry);
 		mainLayout->addLayout(createEntry(name,dbMap.value(name)));
 	}
 
-	QPushButton *confirm=new QPushButton(tr("Найти"));
+	QPushButton *confirm=new QPushButton(tr("Search"));
 	confirm->setDefault(true);
-	QPushButton *reject=new QPushButton(tr("Отмена"));
+	QPushButton *reject=new QPushButton(tr("Cancel"));
 	QDialogButtonBox *buttons=new QDialogButtonBox(Qt::Horizontal);
 	buttons->addButton(confirm,QDialogButtonBox::AcceptRole);
 	buttons->addButton(reject,QDialogButtonBox::RejectRole);
@@ -44,12 +38,9 @@ CustomSearchDialog::CustomSearchDialog(QWidget *parent)
 
 	mainLayout->addWidget(buttons);
 	setLayout(mainLayout);
-	setWindowTitle(tr("Поисковой запрос"));
+	setWindowTitle(tr("Search query"));
 }
 QHBoxLayout* CustomSearchDialog::createEntry(const QString &name, const QList<QVariant> &parameters) const {
-//	if(parameters.value(0).toInt()==0) return 0;	//skip id and also invalid entries
-//	if(parameters.value(2).toInt()==1) return 0;	//also skip "mark" type entries
-
 	QHBoxLayout *result=new QHBoxLayout;
 	QLabel *label=new QLabel(name);
 	DBEditor *editLeft=new DBEditor(parameters.value(1).toString(),parameters.mid(3));
@@ -63,8 +54,6 @@ QHBoxLayout* CustomSearchDialog::createEntry(const QString &name, const QList<QV
 }
 QMap<QString, QPair<QVariant,QVariant> > CustomSearchDialog::getSearchQuery() const {
 	QMap<QString, QPair<QVariant,QVariant> > result;
-//	layout()->children();
-//	this->children();
 	for(int idx=0; idx<layout()->count(); ++idx) {
 		QLayout* entryLayout=layout()->itemAt(idx)->layout();
 		if(entryLayout) {

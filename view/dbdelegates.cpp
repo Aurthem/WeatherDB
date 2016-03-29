@@ -8,8 +8,7 @@
 #include "database.h"
 
 void ComboDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
-	QItemDelegate::paint(painter, option, index);
-	//inside it calls these (after calculating rectangles):
+	QItemDelegate::paint(painter, option, index);	//<- calls these (after calculating rectangles):
 //	drawBackground(painter, opt, index);
 //	drawCheck(painter, opt, checkRect, checkState);
 //	drawDecoration(painter, opt, decorationRect, pixmap);
@@ -17,7 +16,7 @@ void ComboDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
 //	drawFocus(painter, opt, displayRect);
 	//of which latter 4 are virtual, thus to not draw text drawDisplay should be overridden
 
-	//this method renders items inside combobox dropdown list
+///---this method renders items inside combobox dropdown list
 	QColor tmp_color(index.data().toString());
 	if(tmp_color.isValid()) {
 		painter->save();
@@ -47,47 +46,14 @@ void DBColorCombo::paintEvent(QPaintEvent * event) {
 	QVariant data=itemData(currentIndex());
 	QColor tmp_color(data.toString());
 	QStylePainter painter(this);
-	//	painter.setPen(palette().color(QPalette::Text));
-	// draw the combobox frame, focusrect and selected etc.
+
 	QStyleOptionComboBox opt;
 	initStyleOption(&opt);
-//	painter.drawComplexControl(QStyle::CC_ComboBox, opt);
-//	QStyleOptionComboBox tmpOpt(opt);
-//	tmpOpt.rect=style()->subControlRect(QStyle::CC_ComboBox,&opt,QStyle::SC_ComboBoxFrame,this);
-//	qDebug()<<tmpOpt.subControls;
-//	tmpOpt.subControls=QStyle::SC_ComboBoxArrow|QStyle::SC_ComboBoxFrame;
-	//SC_TitleBarNormalButton|SC_TitleBarShadeButton|SC_TitleBarUnshadeButton|SC_TitleBarContextHelpButton|
-	//SC_TitleBarLabel|SC_MdiMinButton|SC_GroupBoxFrame|SC_MdiNormalButton|SC_MdiCloseButton|SC_CustomBase
-//	qDebug()<<tmpOpt.subControls;
-//	style()->drawControl(QStyle::PE_Frame,&tmpOpt,&painter,this);
-//	painter.drawComplexControl(QStyle::CC_ComboBox, tmpOpt);
 
-//	QPainter paint_tmp(this);
 	painter.save();
-	//draw selected item (after it was selected in combobox dropdown list)
+///---draw selected item (after it was selected in combobox dropdown list)
 	if(tmp_color.isValid()) {
 		painter.fillRect(opt.rect,tmp_color);
-//		paint_tmp.setBrush(tmp_color);
-//		paint_tmp.setPen(tmp_color);
-//		paint_tmp.setRenderHint(QPainter::Antialiasing,true);
-////		paint_tmp.drawEllipse(opt.rect);
-//		int diameter=qMin(opt.rect.width(),opt.rect.height());
-//		int left=opt.rect.left()+(opt.rect.width()-diameter)/2;
-//		int top=opt.rect.top()+(opt.rect.height()-diameter)/2;
-//		paint_tmp.drawEllipse(left+1,top+1,diameter-2,diameter-2);
-
-//		if(opt.state & QStyle::State_HasFocus) {
-//			QStyleOptionFocusRect frOpt;
-//			frOpt.QStyleOption::operator=(opt);
-//			frOpt.rect = style()->subElementRect(QStyle::SE_ItemViewItemFocusRect, &opt, this);
-//			frOpt.state |= QStyle::State_KeyboardFocusChange;
-//			frOpt.state |= QStyle::State_Item;
-//			QPalette::ColorGroup cg = (opt.state & QStyle::State_Enabled)
-//										? QPalette::Normal : QPalette::Disabled;
-//			frOpt.backgroundColor = opt.palette.color(cg, (opt.state & QStyle::State_Selected)
-//																	 ? QPalette::Highlight : QPalette::Window);
-//			style()->drawPrimitive(QStyle::PE_FrameFocusRect, &frOpt, &paint_tmp, this);
-//		}
 	}
 	painter.restore();
 
@@ -101,42 +67,7 @@ void DBColorCombo::paintEvent(QPaintEvent * event) {
 	int left=opt.rect.left()+(opt.rect.width()-diameter)/2;
 	int top=opt.rect.top()+(opt.rect.height()-diameter)/2;
 	tmpOpt.rect=QRect(left+1,top+1,diameter,diameter);
-//	qDebug()<<frOpt.rect<<tmpOpt.rect;
-//	painter.save();
-//	painter.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
-//	painter.setBrush(QColor("#000000"));
-//	painter.setPen(QColor("#000000"));
-//	if(tmp_color.isValid() && !tmp_color.name(QColor::HexRgb).compare("#000000")) {
-//		painter.setBrush(QColor("#ffffff"));
-//		painter.setPen(QColor("#ffffff"));
-//		painter.setRenderHint(QPainter::Antialiasing,true);
-//		tmpOpt.palette.setColor(foregroundRole(),QColor("#ffffff"));
-//	}	//seems hard to change primitive color
 	style()->drawPrimitive(QStyle::PE_IndicatorArrowDown,&tmpOpt,&painter,this);
-//	painter.restore();
-
-//		style()->drawControl(QStyle::CE_ComboBoxLabel,&tmpOpt,&paint_tmp,this);
-
-//	painter.drawComplexControl(QStyle::CC_ComboBox, opt);
-//	painter.drawControl(QStyle::CE_FocusFrame,opt);
-
-//  // draw the icon and text
-//	painter.drawControl(QStyle::CE_ComboBoxLabel, opt);
-
-
-//	QPainter paint_gui(this);
-//	paint_gui.save();
-//	QRect rect=painter.style()->subElementRect(QStyle::SE_ComboBoxFocusRect,opt);
-//	rect.adjust(+5,0,-5,0);
-//	QPen pen;
-//	pen.setColor(Qt::black);
-//	pen.setWidth(3);
-//	pen.setStyle(data);
-//	paint_gui.setPen(pen);
-
-//	middle = (rect.bottom() + rect.top()) / 2;
-//	paint_gui.drawLine(rect.left(),middle,rect.right(),middle);
-//	paint_gui.restore();
 }
 
 DBEditor::DBEditor(const QString &type, const QList<QVariant> &range, QWidget * parent)
@@ -147,7 +78,6 @@ DBEditor::DBEditor(const QString &type, const QList<QVariant> &range, QWidget * 
 		validator->setRange(range.value(0).toDouble(),range.value(1).toDouble(),3);
 		setValidator(validator);
 		currentValidator=validator;
-//		validatorMessage.clear();
 		validatorMessage.append(QString("%L1").arg(range.value(0).toDouble(), 0, 'f', 3))
 				.append(" < X < ").append(QString("%L1").arg(range.value(1).toDouble(), 0, 'f', 3));
 		dataType=DoubleData;
@@ -162,19 +92,14 @@ DBEditor::DBEditor(const QString &type, const QList<QVariant> &range, QWidget * 
 		connect(validator,&DBIntValidator::validationStateChanged,this,&DBEditor::setValidProperty);
 	}
 	setFixedWidth(70);
-//	setObjectName("dbEditor");
-//	connect(this,&DBEditor::textEdited,[this](const QString & text){
-//		qDebug()<<text;
-//	});
 }
 void DBEditor::setValidProperty(QValidator::State newState) {
 	if(newState==QValidator::Acceptable) setValid(true);
 	else setValid(false);
-//	setValid(hasAcceptableInput());
 //	style()->unpolish(this);
-	style()->polish(this);
+	style()->polish(this);	//to reapply style
 	update();
-	QTimer::singleShot(500,this,[this]{	//check if the input was changed by validator
+	QTimer::singleShot(500,this,[this]{	//check if the input was changed by validator after a delay
 		setValid(hasAcceptableInput());
 		style()->polish(this);
 		update();
@@ -195,7 +120,6 @@ bool DBEditor::setValue(const QVariant &value) {
 QVariant DBEditor::getValue() const {
 	switch(dataType) {
 	case DoubleData: {
-//		if(text().isEmpty()) return QVariant();
 		QLocale defaultLocale; bool isSuccessful;
 		double value=defaultLocale.toDouble(text(),&isSuccessful);
 		if(isSuccessful) return value;
@@ -225,28 +149,6 @@ void DBEditor::setValidatorRange(const QVariant &left, const QVariant &right) {
 		break;
 	}
 }
-
-//QPair<QVariant,QVariant> DBEditor::getValidatorLimits() const {
-//	QPair<QVariant,QVariant> result;
-//	switch(dataType) {
-//	case DoubleData: {
-//		const DBDoubleValidator* tmpValidator=qobject_cast<const DBDoubleValidator*>(validator());
-//		if(tmpValidator) {
-//			result.first=tmpValidator->bottom();
-//			result.second=tmpValidator->top();
-//		}
-//	}	return result;
-//	case IntData: {
-//		const DBIntValidator* tmpValidator=qobject_cast<const DBIntValidator*>(validator());
-//		if(tmpValidator) {
-//			result.first=tmpValidator->bottom();
-//			result.second=tmpValidator->top();
-//		}
-//	}	return result;
-//	default:
-//		return result;
-//	}
-//}
 
 DBIntValidator::DBIntValidator(QObject * parent) : QIntValidator(parent) {
 }
@@ -282,8 +184,8 @@ QValidator::State	DBDoubleValidator::validate(QString & input, int & pos) const 
 //}
 
 DBDelegate::DBDelegate(QWidget *parent)
-	: QStyledItemDelegate(parent)
-{}
+	: QStyledItemDelegate(parent) {
+}
 QWidget* DBDelegate::createEditor(QWidget *parent,
 																	const QStyleOptionViewItem &option,
 																	const QModelIndex &index) const
@@ -292,20 +194,14 @@ QWidget* DBDelegate::createEditor(QWidget *parent,
 					index.model()->headerData(index.row(),Qt::Vertical,Qt::UserRole).toString()
 				);
 	if(dbList.value(2).toInt()>0) {
-//		QComboBox *editor=new QComboBox(parent);
 		DBColorCombo *editor=new DBColorCombo(parent);
-//		editor->addItems({"one","two"});
 		for(QVariant &item: dbList.mid(3)) {
 			editor->addItem(item.toString(),QColor(item.toString()));
 		}
-//		editor->setItemDelegate(new ComboDelegate());
-//		editor->setGeometry(option.rect);
 		return editor;
 	}
-//	if (index.data().canConvert(QMetaType::Double)) {
 	DBEditor *editor=new DBEditor(dbList.value(1).toString(),dbList.mid(3),parent);
 	if(editor->getType()!=DBEditor::Unknown) {
-//		emit validatedEditorCreated(editor->getValidatorLimits());
 		emit validatedEditorCreated(editor->getValidatorMessage());
 		return editor;
 	} else {
@@ -317,22 +213,10 @@ QWidget* DBDelegate::createEditor(QWidget *parent,
 void DBDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
 	QComboBox *combo=qobject_cast<QComboBox*>(editor);
 	if(combo) {
-//		int value = index.model()->data(index, Qt::EditRole).toInt();
-//		QBrush tmp_brush=index.data(Qt::BackgroundRole).value<QBrush>();
 		int value=index.data(Qt::EditRole).toInt();
-//		combo->itemData(value);
 		combo->setCurrentIndex(value);
-//		combo->addItem("default",tmp_brush.color());
 		return;
 	}
-//	QLineEdit *lineEdit=qobject_cast<QLineEdit*>(editor);
-//	if(lineEdit) {
-//		const QDoubleValidator *doubleValidator=qobject_cast<const QDoubleValidator*>(lineEdit->validator());
-//		if(doubleValidator) {
-//			lineEdit->setText(QString("%L1").arg(index.data(Qt::EditRole).toDouble(), 0, 'f', 3));
-//			return;
-//		}
-//	}
 	DBEditor *dbEditor=qobject_cast<DBEditor*>(editor);
 	if(dbEditor) {
 		if(dbEditor->setValue(index.data(Qt::EditRole))) return;
@@ -343,25 +227,10 @@ void DBDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const 
 void DBDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
 	QComboBox *combo=qobject_cast<QComboBox*>(editor);
 	if(combo) {
-//		QColor value=qvariant_cast<QColor>(combo->currentData());
-//		model->setData(index, QBrush(value), Qt::BackgroundRole);
 		int value=combo->currentIndex();
 		model->setData(index,value,Qt::EditRole);
 		return;
 	}
-//	QLineEdit *lineEdit=qobject_cast<QLineEdit*>(editor);
-//	if(lineEdit) {
-//		const QDoubleValidator *doubleValidator=qobject_cast<const QDoubleValidator*>(lineEdit->validator());
-//		if(doubleValidator) {
-//			bool isSuccessful;
-//			QLocale defaultLocale;
-//			double value=defaultLocale.toDouble(lineEdit->text(),&isSuccessful);
-//			if(isSuccessful) {
-//				model->setData(index,value,Qt::EditRole);
-//				return;
-//			}
-//		}
-//	}
 	DBEditor *dbEditor=qobject_cast<DBEditor*>(editor);
 	if(dbEditor) {
 		QVariant value=dbEditor->getValue();
@@ -401,25 +270,20 @@ void DBDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, co
 	if(dbList.value(2).toInt()>0 && !index.data(Qt::EditRole).isNull()) {	//don't draw in the new column if the value is not set
 //		QBrush tmp_brush=index.data(Qt::BackgroundRole).value<QBrush>();
 		QColor tmp_color(dbList.value(3+index.data(Qt::EditRole).toInt()).toString());
-//		painter->fillRect(option.rect, tmp_brush);
-		//draw item in the table cell
+///---draw item in the table cell
 		if(tmp_color.isValid()) {
 			painter->save();
 			painter->setBrush(tmp_color);
 			painter->setPen(tmp_color);
 			painter->setRenderHint(QPainter::Antialiasing,true);
-	//		painter->drawEllipse(option.rect);
 			int diameter=qMin(option.rect.width(),option.rect.height());
 			int left=option.rect.left()+(option.rect.width()-diameter)/2;
 			int top=option.rect.top()+(option.rect.height()-diameter)/2;
 			painter->drawEllipse(left+1,top+1,diameter-2,diameter-2);
 			painter->restore();
 		}
-//		qDebug()<<tmp_brush;
 	}
 
-//	QBrush tmp_brush=index.model()->data(index,Qt::BackgroundRole).value<QBrush>();
-//	if(tmp_brush.color()==QColor(Qt::yellow)) {
 	if(index.model()->data(index,Qt::UserRole).canConvert(QMetaType::QString)) {
 		QPolygon triangle(3);
 		triangle.setPoint(0,QPoint(option.rect.x()+5,option.rect.y()));
@@ -441,8 +305,8 @@ QSize	DBDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelInde
 					index.model()->headerData(index.row(),Qt::Vertical,Qt::UserRole).toString()
 					).value(2).toInt()>0
 				) {
-		int diameter=qMax(result.width(),result.height());
-		result.setHeight(diameter);	//for bigger circles
+		int diameter=qMax(result.width(),result.height());	//for bigger circles
+		result.setHeight(diameter);
 		result.setWidth(diameter);
 	}
 	return result;
@@ -455,12 +319,5 @@ QString DBDelegate::displayText(const QVariant &value, const QLocale &locale) co
 		return makeVertical(locale.toString(value.toInt()));
 	}
 	return QStyledItemDelegate::displayText(value,locale);
-}
-QSize	DBDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const {
-	if(	index.data().type()==QVariant::String
-	||	index.data().type()==QVariant::LongLong) {
-		return option.fontMetrics.boundingRect(option.rect, Qt::TextWordWrap, displayText(index.data(),QLocale::system())).size();
-	}
-	return QStyledItemDelegate::sizeHint(option,index);
 }
 ---*/

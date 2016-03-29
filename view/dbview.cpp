@@ -5,6 +5,7 @@
 #include <QMenu>
 #include <QApplication>
 #include <QColorDialog>
+#include <QDebug>
 
 #include "dbview.h"
 #include "database.h"
@@ -20,40 +21,25 @@ DBView::DBView(QWidget * parent) : QTableView(parent) {
 
 	horizontalHeader()->setMinimumSectionSize(fontInfo().pixelSize()+2);	//13=11+2 for margins
 	horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-//	verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 	setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-//	setLayoutDirection(Qt::RightToLeft);
 }
 
 void DBView::scrollContentsBy(int dx, int dy) {
 	QTableView::scrollContentsBy(dx,dy);
-//	CheckboxHeader* tmp=dynamic_cast<CheckboxHeader*>(verticalHeader());
 	CheckboxHeader* tmp=qobject_cast<CheckboxHeader*>(verticalHeader());
 	if(dy && tmp) {
 		tmp->fixBoxPositions();
 	}
 }
-//void DBView::reset() {
-//	qDebug()<<"dbv reset";
-//	qDebug()<<verticalHeader()->count()<<verticalHeader()->isSectionHidden(0)
-//				 <<isRowHidden(0);
-//	QTableView::reset();
-////	setRowHidden(0,true);
-//	verticalHeader()->setSectionHidden(0,true);
-//	qDebug()<<verticalHeader()->count()<<verticalHeader()->isSectionHidden(0)
-//				 <<isRowHidden(0);
-//}
 
 FreezeTableWidget::FreezeTableWidget(QAbstractItemModel *model, QWidget *parent)
-//for customSelectColumn - these mimic corresponding fields of QTableViewPrivate:
 	: DBView(parent),frozenTableView(0),
+//for customSelectColumn - these mimic corresponding fields of QTableViewPrivate:
 		columnSectionAnchor(-1),ctrlDragSelectionFlag(QItemSelectionModel::NoUpdate)
 {
-//	frozenTableView = new QTableView(this);
 	frozenTableView = new DBView(this);
-//	frozenTableView = new QTableView(this);
-	frozenTableView->setObjectName("frozenRow");
+	frozenTableView->setObjectName("frozenRow");	//for styling
 
 	setModel(model);	//calls reset() after connections
 	frozenTableView->setModel(model);	//try DBView::reset()
@@ -75,13 +61,9 @@ FreezeTableWidget::FreezeTableWidget(QAbstractItemModel *model, QWidget *parent)
 
 	connect(model,&QAbstractItemModel::modelReset,
 					this,&FreezeTableWidget::resizeRowsToContents);	//resize when rows are removed, etc.
-
-//	connect(model,&QAbstractItemModel::layoutChanged,
-//					this,&FreezeTableWidget::resizeColumnsToContents);	//on sort filter change
-//	connect(model,&QAbstractItemModel::columnsInserted,
-//					horizontalHeader(),&QHeaderView::doItemsLayout);
-//	connect(model,&QAbstractItemModel::columnsRemoved,
-//					horizontalHeader(),&QHeaderView::doItemsLayout);	//works well without these now
+	connect(model,&QAbstractItemModel::modelReset,[this]{
+		handleColumnsInserted(QModelIndex(),1,horizontalHeader()->count()-1);
+	});	//fix for model reset unhiding frozenTableView columns
 
 	//connect the headers and scrollbars of both tableviews together
 	connect(horizontalHeader(),&QHeaderView::sectionResized,
@@ -99,8 +81,6 @@ FreezeTableWidget::FreezeTableWidget(QAbstractItemModel *model, QWidget *parent)
 					frozenTableView->verticalScrollBar(),&QScrollBar::setValue);
 
 //after connections were established:
-//	verticalHeader()->hideSection(0);	//handle checkboxes in checkboxheader (!)
-//	frozenTableView->verticalHeader()->hideSection(0);	//keyboard navigation will be able to go there otherwise
 	setRowHidden(0,true);
 	frozenTableView->setRowHidden(0,true);
 	resizeRowsToContents();
@@ -110,28 +90,24 @@ FreezeTableWidget::FreezeTableWidget(QAbstractItemModel *model, QWidget *parent)
 		connect(tmp_header,&CheckboxHeader::sectionsSetHidden,this,&FreezeTableWidget::slotSectionsSetHidden);
 	}
 
-	copyAction=new QAction("Копировать", this);
+	copyAction=new QAction(tr("Copy"), this);
 	copyAction->setShortcuts(QKeySequence::Copy);
-	copyAction->setStatusTip(tr("Копировать данные ячеек"));
+	copyAction->setStatusTip(tr("Copy cell data"));
 	connect(copyAction, &QAction::triggered, [this]{
 		QApplication::clipboard()->setText(getSelectedContents());
 	});
 	addAction(copyAction);	//to utilize shortcut
 
-	deleteRowAction=new QAction(tr("Удалить столбцы"), this);
-	deleteRowAction->setStatusTip(tr("Удалить выделенные столбцы из таблицы"));
+	deleteRowAction=new QAction(tr("Remove columns"), this);
+	deleteRowAction->setStatusTip(tr("Remove selected columns from the table"));
 	connect(deleteRowAction,&QAction::triggered,[this]{
 		const QModelIndexList selectedColumns=customSelectedColumns(0);
-//		qDebug()<<selectedColumns;
 		QSet<int> removedRowIds;
 		for(const QModelIndex &idx: selectedColumns) {
-//			qDebug()<<this->model()->data(this->model()->index(0,idx.column()),Qt::EditRole);
 			removedRowIds.insert(this->model()->data(this->model()->index(0,idx.column()),Qt::EditRole).toInt());
 			this->model()->removeColumns(idx.column(),1);	//marks for removal, removes after submitAll() call
 		}
 		emit markRowsForRemoval(removedRowIds);
-//		qDebug()<<removedRowIds;
-//		model()->submit();
 	});
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
@@ -145,54 +121,29 @@ FreezeTableWidget::FreezeTableWidget(QAbstractItemModel *model, QWidget *parent)
 	horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(horizontalHeader(),&QHeaderView::customContextMenuRequested,
 					this,&FreezeTableWidget::customHHeaderMenuRequested);
-
-//	connect(horizontalHeader(),&QHeaderView::sectionPressed,this,&FreezeTableWidget::selectColumn);
-
-//	connect(this->model(),&QAbstractItemModel::layoutChanged,[this]{
-//		QItemSelection s = selectionModel()->selection();
-//		setCurrentIndex( currentIndex() );
-//		selectionModel()->select( s, QItemSelectionModel::SelectCurrent );
-//	});
 }
-FreezeTableWidget::~FreezeTableWidget()
-{
+FreezeTableWidget::~FreezeTableWidget() {
 	delete frozenTableView;
 }
 
-void FreezeTableWidget::init()
-{
+void FreezeTableWidget::init() {
 	frozenTableView->setFocusPolicy(Qt::NoFocus);
 	frozenTableView->verticalHeader()->hide();
 	frozenTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-//	frozenTableView->setColumnWidth(0,columnWidth(0));
-//	frozenTableView->setBaseSize(frozenTableView->width()+20,frozenTableView->height());
-//	frozenTableView->setFixedWidth(columnWidth(0));
 
 	viewport()->stackUnder(frozenTableView);
-//	frozenTableView->viewport()->stackUnder(this);
-//	setColumnHidden(0,true);
-//	QHBoxLayout *tmp_layout=new QHBoxLayout();
-//	viewport()->layout()->setContentsMargins(50,0,0,0);
-//	tmp_layout->setContentsMargins(50,50,50,50);
-//	viewport()->setLayout(tmp_layout);
-//	findChild<QWidget*>(viewport()->objectName())->setLayout(tmp_layout);
-
-//	frozenTableView->setStyleSheet("QTableView { border: none;"
-//																 "background-color: rgb(225,255,225);"
-//																 "selection-background-color: lightblue"
-//																 "}"); //for demo purposes
 
 	frozenTableView->setSelectionModel(selectionModel());
 
-	frozenTableView->setColumnWidth(0, columnWidth(0) );
+	frozenTableView->setColumnWidth(0, columnWidth(0));
 
 	frozenTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	frozenTableView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	frozenTableView->show();
 
 	updateFrozenTableGeometry();
-	for (int col = 1; col < model()->columnCount(); ++col)	//inside now (or is it?)
-		frozenTableView->setColumnHidden(col, true);//should hide more when inserted
+	for (int col = 1; col < model()->columnCount(); ++col)
+		frozenTableView->setColumnHidden(col, true);	//should hide more when inserted
 
 	setHorizontalScrollMode(ScrollPerPixel);
 	setVerticalScrollMode(ScrollPerPixel);
@@ -203,7 +154,6 @@ void FreezeTableWidget::init()
 
 QString FreezeTableWidget::getSelectedContents(void) const {
 	QString result;
-//	const QModelIndexList selected=selectionModel()->selectedIndexes();
 	const QModelIndexList selected=selectedIndexes();
 	bool new_line=true;
 	int current_row=-1;
@@ -217,7 +167,6 @@ QString FreezeTableWidget::getSelectedContents(void) const {
 			current_row=index.row();
 		}
 		if(!new_line) result.append("\t");
-//		result.append(index.data(Qt::EditRole).toString());
 		QVariant tmp=index.data(Qt::EditRole);
 		result.append( (tmp.type()==QVariant::Double) ?
 			defaultLocale.toString(tmp.toDouble()) : tmp.toString());
@@ -226,33 +175,26 @@ QString FreezeTableWidget::getSelectedContents(void) const {
 	return result;
 }
 
-void FreezeTableWidget::updateSectionWidth(int logicalIndex, int /* oldSize */, int newSize)
-{
+void FreezeTableWidget::updateSectionWidth(int logicalIndex, int oldSize, int newSize) {
+	Q_UNUSED(oldSize)
 	if (logicalIndex == 0){
 		frozenTableView->setColumnWidth(0, newSize);
 		updateFrozenTableGeometry();
 	} else
 		updateFrozenTableGeometry();	//fix for frozenColumn resize when inserting column
 }
-void FreezeTableWidget::updateSectionHeight(int logicalIndex, int /* oldSize */, int newSize)
-{
+void FreezeTableWidget::updateSectionHeight(int logicalIndex, int oldSize, int newSize) {
+	Q_UNUSED(oldSize)
 	frozenTableView->setRowHeight(logicalIndex, newSize);
 }
-void FreezeTableWidget::handleRowsMoved(int /*logical*/, int oldVisualIndex, int newVisualIndex) {
+void FreezeTableWidget::handleRowsMoved(int logical, int oldVisualIndex, int newVisualIndex) {
+	Q_UNUSED(logical)
 	frozenTableView->verticalHeader()->moveSection(oldVisualIndex,newVisualIndex);
 }
-void FreezeTableWidget::handleColumnsMoved(int /*logical*/, int oldVisualIndex, int newVisualIndex) {
+void FreezeTableWidget::handleColumnsMoved(int logical, int oldVisualIndex, int newVisualIndex) {
+	Q_UNUSED(logical)
 	frozenTableView->horizontalHeader()->moveSection(oldVisualIndex,newVisualIndex);
 }
-//void FreezeTableWidget::handleColumnCountChanged(int oldCount, int newCount) {
-//	frozenTableView->columnCountChanged(oldCount,newCount);
-//}
-//void FreezeTableWidget::updateHorizontalHeaderLayout(void) {
-////	horizontalHeader()->doItemsLayout();
-////	frozenTableView->horizontalHeader()->doItemsLayout();
-//	frozenTableView->resizeColumnsToContents();
-//	updateFrozenTableGeometry();
-//}
 void FreezeTableWidget::setRowHidden(int row, bool hide) {
 	if (row < 0 || row >= verticalHeader()->count()) return;
 	verticalHeader()->setSectionHidden(row, hide);
@@ -268,58 +210,18 @@ QList<int> FreezeTableWidget::getCheckedRows(void) const {
 void FreezeTableWidget::handleRowsHidden() {
 	CheckboxHeader* hdr=qobject_cast<CheckboxHeader*>(verticalHeader());
 	if(hdr) hdr->handleRowsHidden();
-	//frozenTableView should hide its own columns
-//	QList<int> rows_to_hide=getCheckedRows();
-//	for(int idx: rows_to_hide) {
-//		frozenTableView->verticalHeader()->setSectionHidden(idx,true);
-//	}
+	//frozenTableView hides its own columns
 
 	resizeColumnsToContents();
 	updateFrozenTableGeometry();
-//	frozenTableView->resizeColumnsToContents();
-//	verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
-//	horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
-//	frozenTableView->verticalHeader()->show();
-//	setFrozenVisible(false);
-//	setFrozenVisible(true);
-//	frozenTableView->horizontalHeader()->doItemsLayout();
-//	frozenTableView->verticalHeader()->updateGeometry();
-//	frozenTableView->hide();
-//	frozenTableView->show();
-//	horizontalHeader()->resizeSections();
-//	updateFrozenTableGeometry();
-//	horizontalHeader()->reset();
-//	frozenTableView->doItemsLayout();
-//	frozenTableView->horizontalHeader()->doItemsLayout();
-//	updateFrozenTableGeometry();
-//	frozenTableView->update();
-//	frozenTableView->setHidden(true);
-//	frozenTableView->setHidden(false);
-
-	//when vertical header is resized after some sections are hidden,
-	//frozenTableView remains shifted in its old position (no idea how to fix)
+	//issue: when vertical header is resized after some horizontal header sections are hidden,
+	//frozenTableView remains shifted in its old position
 }
 void FreezeTableWidget::handleRowsShown() {
 	CheckboxHeader* hdr=qobject_cast<CheckboxHeader*>(verticalHeader());
 	if(hdr) hdr->handleRowsShown();
 	resizeColumnsToContents();
 	updateFrozenTableGeometry();
-//	frozenTableView->resizeColumnsToContents();
-//	frozenTableView->verticalHeader()->resizeSections();
-
-//	frozenTableView->verticalHeader()->show();
-//	setFrozenVisible(false);
-//	setFrozenVisible(true);
-//	updateFrozenTableGeometry();
-//	frozenTableView->verticalHeader()->updateGeometry();
-//	frozenTableView->hide();
-//	frozenTableView->show();
-//	horizontalHeader()->resizeSections();
-//	horizontalHeader()->reset();
-//	updateFrozenTableGeometry();
-//	frozenTableView->update();
-//	frozenTableView->setHidden(true);
-//	frozenTableView->setHidden(false);
 }
 void FreezeTableWidget::resizeRowsToContents(void) {
 	QTableView::resizeRowsToContents();
@@ -331,23 +233,22 @@ void FreezeTableWidget::slotSectionsSetHidden(const QList<int> &index_list,bool 
 	for(const int &idx: index_list) {
 		frozenTableView->verticalHeader()->setSectionHidden(idx,hide);
 	}
-//	qDebug()<<"slotSectionsSetHidden";
 }
 
 void FreezeTableWidget::customCellMenuRequested(const QPoint &pos) {
 	if(!indexAt(pos).isValid()) return;
 	QMenu contextMenu(tr("Cell context menu"), this);
-	QAction markAction(tr("Пометить"), this);
-	markAction.setStatusTip(tr("Пометить выделенные ячейки цветом"));
+	QAction markAction(tr("Mark"), this);
+	markAction.setStatusTip(tr("Mark selected cells with a color"));
 	connect(&markAction, &QAction::triggered, [this]{
 		const QColorDialog::ColorDialogOptions options=QColorDialog::ShowAlphaChannel;
-		const QColor color = QColorDialog::getColor(Qt::white, this, tr("Выберите цвет метки"), options);
+		const QColor color = QColorDialog::getColor(Qt::white, this, tr("Select mark color"), options);
 		if(color.isValid()) {
 			handleSetMarkColor(color);
 		}
 	});
-	QAction clearAction(tr("Убрать метки"), this);
-	clearAction.setStatusTip(tr("Убрать цветовые метки выделенных ячеек"));
+	QAction clearAction(tr("Remove marks"), this);
+	clearAction.setStatusTip(tr("Remove color marks of selected cells"));
 	connect(&clearAction, &QAction::triggered, [this]{ handleSetMarkColor(QColor()); });
 
 	contextMenu.addAction(copyAction);	//ownership is not transferred (!)
@@ -386,8 +287,8 @@ void FreezeTableWidget::handleSetMarkColor(const QColor& color) const {
 
 void FreezeTableWidget::customVHeaderMenuRequested(const QPoint &pos) {
 	QMenu contextMenu(tr("Vertical header context menu"), this);
-	QAction lockAction(tr("Закреплено"), this);
-	lockAction.setStatusTip(tr("Разрешить или запретить перемещение строк"));
+	QAction lockAction(tr("Locked"), this);
+	lockAction.setStatusTip(tr("Lock or unlock row movement"));
 	lockAction.setCheckable(true); lockAction.setChecked(!verticalHeader()->sectionsMovable());
 	connect(&lockAction, &QAction::triggered, [this](bool checked){
 		verticalHeader()->setSectionsMovable(!checked);
@@ -402,17 +303,7 @@ void FreezeTableWidget::customHHeaderMenuRequested(const QPoint &pos) {
 	contextMenu.exec(horizontalHeader()->viewport()->mapToGlobal(pos));
 }
 
-//void FreezeTableWidget::reset() {
-////	qDebug()<<"ftw reset";
-////	qDebug()<<verticalHeader()->count()<<verticalHeader()->isSectionHidden(0)
-////				 <<isRowHidden(0);
-//	DBView::reset();
-////	resizeRowsToContents();
-////	updateFrozenTableGeometry();	//hangs, recursion
-//}
-
-void FreezeTableWidget::resizeEvent(QResizeEvent * event)
-{
+void FreezeTableWidget::resizeEvent(QResizeEvent * event) {
 	QTableView::resizeEvent(event);
 	updateFrozenTableGeometry();
 }
@@ -429,7 +320,7 @@ QModelIndex FreezeTableWidget::moveCursor(CursorAction cursorAction,
 	}
 	return current;
 }
-void FreezeTableWidget::scrollTo (const QModelIndex & index, ScrollHint hint){
+void FreezeTableWidget::scrollTo (const QModelIndex & index, ScrollHint hint) {
 	if (index.column() > 0)
 		QTableView::scrollTo(index, hint);
 }
@@ -437,10 +328,7 @@ bool FreezeTableWidget::edit(const QModelIndex &index, EditTrigger trigger, QEve
 	if(!index.isValid()) return false;
 	if(index.column()==0) {
 		if(trigger&QAbstractItemView::AnyKeyPressed) {
-//			event->setAccepted(false);
-//			frozenTableView->edit(index);
 			QCoreApplication::sendEvent(frozenTableView,event);
-//			frozenTableView->event(event);
 //			QKeyEvent* key=qobject_cast<QKeyEvent*>(event);
 //			return true;
 		}
@@ -449,50 +337,18 @@ bool FreezeTableWidget::edit(const QModelIndex &index, EditTrigger trigger, QEve
 	return DBView::edit(index,trigger,event);
 }
 
-//void FreezeTableWidget::unhideFrozenTableGeometry()
-//{
-//	for (int col = 1; col < model()->columnCount(); ++col)
-//		frozenTableView->setColumnHidden(col, false);//should hide more when inserted
-//}
 void FreezeTableWidget::updateFrozenTableGeometry() {
 	frozenTableView->setGeometry(verticalHeader()->width() + frameWidth(),
 															 frameWidth(), columnWidth(0),
 															 viewport()->height()+horizontalHeader()->height());
-//	qDebug()<<verticalHeader()->width()<<"|"<<frameWidth()<<"|"<<columnWidth(0)<<"|"<<viewport()->height()<<"|"<<horizontalHeader()->height();
 //	for (int col = 1; col < model()->columnCount(); ++col)
-//		frozenTableView->setColumnHidden(col, true);//should hide more when inserted
+//		frozenTableView->setColumnHidden(col, true);	//moved to a slot to avoid unnecessary actions
 }
-void FreezeTableWidget::handleColumnsInserted(const QModelIndex & parent, int first, int last) {
+void FreezeTableWidget::handleColumnsInserted(const QModelIndex &parent, int first, int last) {
 	Q_UNUSED(parent);
-//	horizontalHeader()->rowsAboutToBeRemoved(parent,first,last);
-//	int last_idx=horizontalHeader()->count()-last+first-1;
-//	for(int idx=0; idx<horizontalHeader()->count(); ++idx) {
-//		if(idx>=first && idx<=last) horizontalHeader()->setSectionHidden(idx,true);
-//		if(idx>=last_idx) horizontalHeader()->setSectionHidden(idx,true);
-//	}
-//	horizontalHeader()->sectionCountChanged(horizontalHeader()->count(),horizontalHeader()->count()-last+first-1);
-//	horizontalHeader()->headerDataChanged(Qt::Horizontal,0,horizontalHeader()->count()-1);
-//	layoutChanged();
-//	frozenTableView->model()->resetInternalData();
-//	frozenTableView->;
-//	int count=1+last-first;
 	for (int col = first; col<=last; ++col)
 		frozenTableView->setColumnHidden(col, true);//should hide more when inserted
 }
-
-//void FreezeTableWidget::handleSelectionOnRemove(void) {
-//	selectionModel()->setCurrentIndex(model()->index(0,0),QItemSelectionModel::ClearAndSelect|QItemSelectionModel::Current);
-//	frozenTableView->selectionModel()->setCurrentIndex(model()->index(0,0),QItemSelectionModel::ClearAndSelect|QItemSelectionModel::Current);
-//	unhideFrozenTableGeometry();
-//	moveCursor(QTableView::MoveHome,Qt::NoModifier);
-//	setSelection(QRect(0,0,10,10),QItemSelectionModel::SelectCurrent);
-//	selectionChanged(QItemSelection(),QItemSelection(model()->index(0,0),model()->index(model()->rowCount()-1,model()->columnCount()-1)));
-//	setCurrentIndex(model()->index(0,0));
-//	selectionModel()->clearCurrentIndex();
-//	selectionModel()->reset();
-//	frozenTableView->selectionModel()->reset();
-//	qDebug()<<selectionModel()->hasSelection();
-//}
 
 //the following is a workaround for https://bugreports.qt.io/browse/QTBUG-50171
 //check if it's relevant after version 5.5.1
@@ -502,8 +358,6 @@ void FreezeTableWidget::customSelectColumn(int column, bool anchor) {
 					&& selectionBehavior() == QTableView::SelectItems))
 		return;
 
-//	int columnSectionAnchor=-1;
-//	QItemSelectionModel::SelectionFlag ctrlDragSelectionFlag=QItemSelectionModel::NoUpdate;
 	if (column >= 0 && column < model()->columnCount()) {
 		int row = verticalHeader()->logicalIndexAt(0);
 		QModelIndex index = model()->index(row, column);
@@ -513,26 +367,6 @@ void FreezeTableWidget::customSelectColumn(int column, bool anchor) {
 				|| (selectionMode() == QTableView::SingleSelection))
 			columnSectionAnchor = column;
 
-//		qDebug()<<ctrlDragSelectionFlag<<command;
-//		const QItemSelection selected_ranges=selectionModel()->selection();
-//		QSet<int> selected_columns_to_check;
-//		for(const QItemSelectionRange &range: selected_ranges) {
-//			for(int idx=range.left();idx<=range.right();++idx) {
-//				selected_columns_to_check.insert(idx);
-//			}
-//		}
-//		const QModelIndexList selected_indexes=selectionModel()->selectedIndexes();
-//		for(const QModelIndex &idx: selected_indexes) {
-////			for(int model_row=0; model_row<model()->rowCount();++model_row) {
-//				if(!verticalHeader()->isSectionHidden(model_row)) {
-//					if(model()->index(model_row,idx.column())) {
-
-//					}
-//				}
-////			}
-//		}
-//		qDebug()<<index;
-//		qDebug()<<customSelectedColumns(row);
 		if (selectionMode() != QTableView::SingleSelection
 				&& command.testFlag(QItemSelectionModel::Toggle)) {
 			if (anchor)	//horizontalHeader()->selectionModel()->selectedColumns(row) if rows moved so the first visual is not row=0
@@ -543,9 +377,7 @@ void FreezeTableWidget::customSelectColumn(int column, bool anchor) {
 			if (!anchor)
 				command |= QItemSelectionModel::Current;
 		}
-//		qDebug()<<ctrlDragSelectionFlag<<command;
 
-//		qDebug()<<verticalHeader()->length();
 		//logicalIndex(int) doesn't play well with moved and hidden sections, thus logicalIndexAt(int) is better
 		QModelIndex tl = model()->index(verticalHeader()->logicalIndexAt(0), qMin(columnSectionAnchor, column));
 		QModelIndex br = model()->index(verticalHeader()->logicalIndexAt(verticalHeader()->length()-1),
@@ -559,8 +391,7 @@ void FreezeTableWidget::customSelectColumn(int column, bool anchor) {
 	}
 }
 
-bool FreezeTableWidget::customIsColumnSelected(int column, const QModelIndex &parent) const
-{
+bool FreezeTableWidget::customIsColumnSelected(int column, const QModelIndex &parent) const {
 	if (!selectionModel()->model()) return false;
 	if (parent.isValid() && selectionModel()->model() != parent.model()) return false;
 
@@ -584,11 +415,9 @@ bool FreezeTableWidget::customIsColumnSelected(int column, const QModelIndex &pa
 	}
 	return rowCount > 0; // no rows means no selected items
 }
-QModelIndexList FreezeTableWidget::customSelectedColumns(int row) const
-{
+QModelIndexList FreezeTableWidget::customSelectedColumns(int row) const {
 	QModelIndexList indexes;
-	//the QSet contains pairs of parent modelIndex
-	//and column number
+	//the QSet contains pairs of parent modelIndex and column number
 	QSet< QPair<QModelIndex, int> > columnsSeen;
 
 	const QItemSelection ranges = selectionModel()->selection();

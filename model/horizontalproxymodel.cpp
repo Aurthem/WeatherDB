@@ -4,7 +4,6 @@
 #include "horizontalproxymodel.h"
 #include "database.h"
 
-//bool HorizontalProxyModel::vertical=true;
 HorizontalProxyModel::HorizontalProxyModel(QObject *parent)
 	: QAbstractProxyModel(parent), vertical(true) {
 }
@@ -20,7 +19,6 @@ int HorizontalProxyModel::rowCount(const QModelIndex &parent) const {
 //	return (sourceModel() ? sourceModel()->columnCount(mapToSource(parent)) : 0);
 }
 QModelIndex HorizontalProxyModel::index(int row, int column, const QModelIndex &parent) const {
-//	return createIndex(row, column, (void*) 0);
 //	return createIndex(row,column,
 //		sourceModel() ? sourceModel()->index(column,row,mapToSource(parent)).internalPointer():(void*)0);
 	Q_ASSERT(parent.isValid() ? parent.model() == this : true);
@@ -44,7 +42,6 @@ QModelIndex HorizontalProxyModel::mapFromSource(const QModelIndex &sourceIndex) 
 QModelIndex HorizontalProxyModel::mapToSource(const QModelIndex &proxyIndex) const {
 	if (!sourceModel() || !proxyIndex.isValid()) return QModelIndex();
 	Q_ASSERT(proxyIndex.model() == this);
-//	return sourceModel()->index(proxyIndex.column(), proxyIndex.row());
 //	return sourceModel()->createIndex(proxyIndex.row(), proxyIndex.column(), proxyIndex.internalPointer());	//protected!
 	//hacks:
 	const AbstractItemModelExposer *hackedModel = static_cast<const AbstractItemModelExposer*>(sourceModel());
@@ -124,7 +121,7 @@ QVariant HorizontalProxyModel::headerData(int section, Qt::Orientation orientati
 		if(result.toString().compare("*") && result.toString().compare("!")) return QString();	//leave "*","!" unchanged
 	}
 	if(orientation==Qt::Vertical && role==Qt::DisplayRole) {
-		return result.toString().prepend("     ");	//space for CheckboxHeader
+		return result.toString().prepend("     ");	//space for CheckboxHeader's checkboxes
 	}
 	if(orientation==Qt::Vertical && role==Qt::UserRole) {	//without spaces, for delegate
 		return sourceModel()->headerData(section, new_orientation, Qt::DisplayRole);
@@ -157,7 +154,7 @@ QVariant HorizontalProxyModel::data(const QModelIndex &proxyIndex, int role) con
 }
 QString HorizontalProxyModel::makeVertical(QString source) const {
 	QString result;
-	for(int idx=0; idx<source.size(); ++idx) {	//hugely depends on locale for doubles (!)
+	for(int idx=0; idx<source.size(); ++idx) {	//strongly depends on locale for doubles (!)
 		if(idx && source.at(idx)!=',' && source.at(idx-1)!='-') result.append("\n");
 		result.append(source.at(idx));
 	}

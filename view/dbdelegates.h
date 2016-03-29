@@ -22,8 +22,6 @@ protected:
 
 class DBEditor: public QLineEdit
 { Q_OBJECT
-//	Q_DECLARE_METATYPE(QValidator::State)
-//	Q_ENUM(QValidator::State)
 public:
 	DBEditor(const QString &type, const QList<QVariant> &range, QWidget * parent = 0);
 
@@ -37,7 +35,6 @@ public:
 	bool setValue(const QVariant &value);
 	QVariant getValue() const;
 
-//	QPair<QVariant,QVariant> getValidatorLimits() const;
 	QString getValidatorMessage() const { return validatorMessage; }
 	void setValidatorRange(const QVariant &left, const QVariant &right);
 public slots:
@@ -82,15 +79,11 @@ public:
 										const QModelIndex &index) const Q_DECL_OVERRIDE;
 	void updateEditorGeometry(QWidget *editor,
 														const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
-	//	QString	displayText(const QVariant &value, const QLocale &locale) const Q_DECL_OVERRIDE;
-//	QSize	sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
+//	QString	displayText(const QVariant &value, const QLocale &locale) const Q_DECL_OVERRIDE;
 	void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
 	virtual QSize	sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
 signals:
-//	void validatedEditorCreated(const QPair<QVariant,QVariant> &limits) const;
 	void validatedEditorCreated(const QString &validatorMessage) const;
-private:
-//	QString makeVertical(QString source) const;
 };
 
 #endif // DBDELEGATES_H

@@ -30,8 +30,6 @@ public slots:
 protected:
 	virtual bool event(QEvent * event) Q_DECL_OVERRIDE;	//for status tips
 private:
-//	QDialogButtonBox *buttonBox;
-
 	FreezeTableWidget *view;
 	DBModel *model;
 
@@ -40,16 +38,13 @@ private:
 	HorizontalProxyModel *adapter;	//applied after to switch columns<->rows
 
 	QStatusBar *statusBar;
-	QPair<QString, QString> statusMessage;	//Filter: <first1, first2>; Hidden: <second1, second2>
+	QPair<QString, QString> statusMessage;	//Filter: <"first1, first2">; Hidden: <"second1, second2">
 	bool showStatusMessage(void) const;
 
 	QSet<int> rowIdsToRemove;	//for marks update after submitAll
 
 	static bool advancedOptionsEnabled;
 	QWidget* advancedOptions;
-
-//	QSqlRecord record;
-//	QSqlDatabase database;
 signals:
 	void customRowsRemoved(const QSet<int> &rowIds);	//used for updating marks
 	void customColumnsRemoved(const QList<int> &columns);	//used for updating marks
@@ -67,18 +62,12 @@ class TabHolder : public QTabWidget
 public:
 	explicit TabHolder(QWidget *parent = 0);
 
-//	int addTab(QWidget *page, const QString &label) {
-//		return QTabWidget::addTab(page,label);
-//	}
-
-signals:
-
 public slots:
 	void customTabMenuRequested(const QPoint &pos);
 
 	void addTab(void);
 
-	void removeTabView(int idx);	//will delete tab widget
+	void removeTabView(int idx);	//will delete tab widget (!)
 
 	void handleNumberRepresentationToggle(bool vert);
 private:

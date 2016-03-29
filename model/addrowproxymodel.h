@@ -35,16 +35,6 @@ public:
 	QMap<int, QVariant> constructFilter(const QList<int> &checked) const;
 
 	virtual void setSourceModel(QAbstractItemModel * newSourceModel) Q_DECL_OVERRIDE;
-//public slots:
-//	void populateRecord(int row, QSqlRecord & new_record) const;	//used with QSqlTableModel::primeInsert signal
-//protected slots:
-//	void slotSourceModelChanged(void) {
-//		disconnect(this,SLOT(slotDataChanged(QModelIndex,QModelIndex)));
-//		connect(sourceModel(),SIGNAL(dataChanged(QModelIndex,QModelIndex)),this,SLOT(slotDataChanged(QModelIndex,QModelIndex)));
-//	}
-//	void slotDataChanged(const QModelIndex &first, const QModelIndex &last) {
-//		emit dataChanged(mapFromSource(first),mapFromSource(last));
-//	}
 public slots:
 	void submitRow();
 	void clearRowData(void) {

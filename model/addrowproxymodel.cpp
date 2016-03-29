@@ -52,7 +52,6 @@ QModelIndex AddRowProxyModel::mapToSource(const QModelIndex &proxyIndex) const {
 	Q_ASSERT(proxyIndex.model() == this);
 	if(proxyIndex.row()==0)	//workaround, should work
 		return createIndex(-1,proxyIndex.column(),static_cast<quintptr>(-1));
-//	return sourceModel()->index(proxyIndex.row()-1,proxyIndex.column());
 //	return sourceModel()->createIndex(proxyIndex.row()-1, proxyIndex.column(), proxyIndex.internalPointer());	//protected!
 	//hacks:
 	const AbstractItemModelExposer *hackedModel = static_cast<const AbstractItemModelExposer*>(sourceModel());
@@ -132,7 +131,7 @@ QVariant AddRowProxyModel::headerData(int section, Qt::Orientation orientation, 
 	if(orientation==Qt::Vertical) {
 		if(section==0) {
 			if(role==Qt::DisplayRole)
-				return QString("Новый");
+				return QString(tr("New"));
 			return QVariant();
 		}
 		return sourceModel()->headerData(section-1,orientation,role);
@@ -424,56 +423,13 @@ QVariant AddRowProxyModel::localeConvert(const QVariant &source) const {
 
 void AddRowProxyModel::submitRow() {
 //	emit layoutAboutToBeChanged();
-//	QModelIndexList changedIndexes=persistentIndexList();
-//	beginInsertRows(QModelIndex(),0,1);
-//	int idx=0;
 
-//	if(!sourceModel()) return;
-//	sourceModel()->insertRow(0);
 	insertRows(1,1);
 
-//	insertRow(0);
 	//setRecord is faster, but without model cast this is the solution
 	for(int idx=1; idx<sourceModel()->columnCount(); ++idx) {	//don't set id
-//		sourceModel()->setData(createIndex(idx,jdx),record[jdx],Qt::EditRole);
-//		setData(createIndex(1,jdx),record[jdx],Qt::EditRole);
-//		setData(createIndex(1,jdx),record[jdx],Qt::EditRole);
 		setData(index(1,idx),record[idx],Qt::EditRole);
 	}
-//	endInsertRows();
-//	emit dataChanged(createIndex(sourceModel()->rowCount()-1,0),	//clean up!
-//		createIndex(sourceModel()->rowCount()-1,sourceModel()->columnCount()-1));
-//	QModelIndexList from,to;
-//	changePersistentIndex(0,0);
-//	for(int idx=0; idx<sourceModel()->rowCount(); ++idx) {
-//		for(int jdx=0; jdx<sourceModel()->columnCount(); ++jdx) {
-//			if(!idx) ;//from<<QModelIndex();
-//			else from<<createIndex(idx-1,jdx);
-//			to<<createIndex(idx,jdx);
-//		}
-//	}
-//	changePersistentIndexList(from,to);
-//	changePersistentIndexList(changedIndexes,persistentIndexList());
 //	emit layoutChanged();
-
-//		emit dataChanged(createIndex(1,0),QModelIndex());
-
-
-		//createIndex(sourceModel()->rowCount()-1,sourceModel()->columnCount()-1)
+//	emit dataChanged(createIndex(1,0),QModelIndex());
 }
-
-//void AddRowProxyModel::populateRecord(int row, QSqlRecord & new_record) const {
-//	if(row!=0) return;	//maybe it's too harsh, but only populating first record seems correct
-//	for(int idx=0; idx<columnCount(); ++idx) {
-//		new_record.setValue(idx,record.value(idx));
-//	}
-//}
-
-//bool AddRowProxyModel::submit() {
-//	int idx=0;
-//	sourceModel()->insertRow(idx);
-//	for(int jdx=0; jdx<sourceModel()->columnCount(); ++jdx) {
-//		sourceModel()->setData(createIndex(idx,jdx),record[jdx]);
-//	}
-//	return QIdentityProxyModel::submit();
-//}

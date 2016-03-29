@@ -13,55 +13,30 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
-//	QWidget *topFiller = new QWidget;
-//	topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-//	QWidget *bottomFiller = new QWidget;
-//	bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-//	QVBoxLayout *layout = new QVBoxLayout;
-//	layout->setMargin(5);
-//	layout->addWidget(topFiller);
-//	layout->addWidget(centralWidget());
-//	layout->addWidget(bottomFiller);
-//	this->setLayout(layout);
-
 	searchDialog=new CustomSearchDialog(this);
 	searchDialog->hide();
 
 	createActions();
 	createMenus();
 
-//	QString message = tr("A context menu is available by right-clicking");
-//	statusBar()->showMessage(message,2000);
-
 	setWindowTitle(tr("WeatherDB"));
 	setMinimumSize(200, 350);
-	resize(800, 500);
+	resize(800, 565);
 
 	msg=new QMessageBox(QMessageBox::Information,"Information","Message");
-
 }
 MainWindow::~MainWindow() {
 	delete msg;
 }
-
 
 void MainWindow::closeEvent(QCloseEvent * event) {
 	Database::getInstance().finalize();
 	QMainWindow::closeEvent(event);
 }
 
-//void MainWindow::contextMenuEvent(QContextMenuEvent *event)
-//{
-//	QMenu menu(this);
-//	menu.addAction(copyAct);
-//	menu.exec(event->globalPos());
-//}
-
 void MainWindow::newFile() {
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Создать новую базу данных"),
-				QApplication::applicationDirPath(), tr("База данных (*.db)"));
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Create new database"),
+				QApplication::applicationDirPath(), tr("Database (*.db)"));
 	Database::getInstance().setupDatabase(fileName);
 
 //	QFile *newFile = new QFile(fileName);
@@ -77,27 +52,10 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::open() {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть базу данных"),
-				QApplication::applicationDirPath(), tr("База данных (*.db)"),
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open database"),
+				QApplication::applicationDirPath(), tr("Database (*.db)"),
 				0, QFileDialog::DontConfirmOverwrite);
 	Database::getInstance().setupDatabase(fileName);
-//	msg->setText(tr("Invoked <b>File|Open</b>"));
-//	msg->show();
-}
-
-//void MainWindow::save() {
-//	msg->setText(tr("Invoked <b>File|Save</b>"));
-//	msg->show();
-//}
-
-void MainWindow::undo() {
-	msg->setText(tr("Invoked <b>Edit|Undo</b>"));
-	msg->show();
-}
-
-void MainWindow::redo() {
-	msg->setText(tr("Invoked <b>Edit|Redo</b>"));
-	msg->show();
 }
 
 void MainWindow::copy() {
@@ -106,57 +64,32 @@ void MainWindow::copy() {
 }
 
 void MainWindow::about() {
-//	msg->setText(tr("Invoked <b>Help|About</b>"));
-//	msg->show();
-	QMessageBox::about(this, tr("О программе"),
+	QMessageBox::about(this, tr("About"),
 										 tr("<p align='center'>"
-												"Программа написана на Qt 5.5.1 и SQLite 3.8.10.2<br>"
-												"Бороденко Артёмом &lt;aurthem@gmail.com&gt;</p>"));
+												"This program is written with<br>Qt 5.5.1 and SQLite 3.8.10.2<br>"
+												"by Borodenko Aurthem &lt;aurthem@gmail.com&gt;</p>"));
 }
 
-//void MainWindow::emitSearchRequested() {
-//	emit searchRequested();
-//}
-//void MainWindow::emitToggledNumberRepresentation(void) {
-//	emit toggledNumberRepresentation(toggleVertical->isChecked());
-//}
-
 void MainWindow::createActions() {
-	newAct = new QAction(tr("Создать..."), this);
+	newAct = new QAction(tr("Create..."), this);
 	newAct->setShortcuts(QKeySequence::New);
-	newAct->setStatusTip(tr("Создать новую базу данных"));
+	newAct->setStatusTip(tr("Create new database"));
 	connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 //	newAct->setEnabled(false);
 
-	openAct = new QAction(tr("Открыть..."), this);
+	openAct = new QAction(tr("Open..."), this);
 	openAct->setShortcuts(QKeySequence::Open);
-	openAct->setStatusTip(tr("Открыть существующую базу данных"));
+	openAct->setStatusTip(tr("Open existing database"));
 	connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 //	openAct->setEnabled(false);
 
-//	saveAct = new QAction(tr("Save"), this);
-//	saveAct->setShortcuts(QKeySequence::Save);
-//	saveAct->setStatusTip(tr("Save the document to disk"));
-//	connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
-
-	exitAct = new QAction(tr("Выход"), this);
+	exitAct = new QAction(tr("Exit"), this);
 	exitAct->setShortcuts(QKeySequence::Quit);
-	exitAct->setStatusTip(tr("Выйти из приложения"));
+	exitAct->setStatusTip(tr("Terminate this program"));
 	connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
-//	undoAct = new QAction(tr("&Undo"), this);
-//	undoAct->setShortcuts(QKeySequence::Undo);
-//	undoAct->setStatusTip(tr("Undo the last operation"));
-//	connect(undoAct, SIGNAL(triggered()), this, SLOT(undo()));
-
-//	redoAct = new QAction(tr("&Redo"), this);
-//	redoAct->setShortcuts(QKeySequence::Redo);
-//	redoAct->setStatusTip(tr("Redo the last operation"));
-//	connect(redoAct, SIGNAL(triggered()), this, SLOT(redo()));
-
-	searchAct = new QAction(tr("Выборка..."), this);
-	searchAct->setStatusTip(tr("Произвести выборку с составными условиями"));
-//	connect(searchAct, SIGNAL(triggered()), this, SLOT(emitSearchRequested()));
+	searchAct = new QAction(tr("Search..."), this);
+	searchAct->setStatusTip(tr("Perform compound search query"));
 	connect(searchAct, &QAction::triggered, [this] {
 		searchDialog->show();
 		searchDialog->raise();
@@ -168,48 +101,38 @@ void MainWindow::createActions() {
 	});
 //	searchAct->setEnabled(false);
 
-	toggleVertical= new QAction(tr("Числа: вертикально"), this);
-	toggleVertical->setStatusTip(tr("Показывать числа вертикально в таблице"));
+	toggleVertical= new QAction(tr("Numbers: vertical"), this);
+	toggleVertical->setStatusTip(tr("Use vertical representation of values in the table"));
 	toggleVertical->setCheckable(true); toggleVertical->setChecked(true);
-//	connect(toggleVertical, SIGNAL(triggered()), this, SLOT(emitToggledNumberRepresentation()));
 	connect(toggleVertical, &QAction::triggered, [this] {
 		emit toggledNumberRepresentation(toggleVertical->isChecked());
 	});
-	toggleAdvanced= new QAction(tr("Дополнительные опции"), this);
-	toggleAdvanced->setStatusTip(tr("Показывать дополнительные опции по управлению базой данных"));
+	toggleAdvanced= new QAction(tr("Additional options"), this);
+	toggleAdvanced->setStatusTip(tr("Show additional options for database control"));
 	toggleAdvanced->setCheckable(true); toggleAdvanced->setChecked(false);
 	connect(toggleAdvanced, &QAction::triggered, [this] {
 		emit toggledAdvancedOptions(toggleAdvanced->isChecked());
 	});
 
-	aboutAct = new QAction(tr("О программе"), this);
-	aboutAct->setStatusTip(tr("Показать информацию об этой программе"));
+	aboutAct = new QAction(tr("About"), this);
+	aboutAct->setStatusTip(tr("Show information about this program"));
 	connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-
-//	fileGroup = new QActionGroup(this);
-//	fileGroup->addAction(newAct);
-//	fileGroup->addAction(openAct);
-//	fileGroup->addAction(saveAct);
-//	fileGroup->addAction(exitAct);
 }
 
 void MainWindow::createMenus()
 {
-	fileMenu = menuBar()->addMenu(tr("База данных"));
+	fileMenu = menuBar()->addMenu(tr("Database"));
 	fileMenu->addAction(newAct);
 	fileMenu->addAction(openAct);
-//	fileMenu->addAction(saveAct);
 	fileMenu->addSeparator();
 	fileMenu->addAction(exitAct);
 
-	viewMenu = menuBar()->addMenu(tr("Представление"));
-//	viewMenu->addAction(undoAct);
-//	viewMenu->addAction(redoAct);
+	viewMenu = menuBar()->addMenu(tr("Representation"));
 	viewMenu->addAction(searchAct);
 	viewMenu->addSeparator();
 	viewMenu->addAction(toggleVertical);
 	viewMenu->addAction(toggleAdvanced);
 
-	helpMenu = menuBar()->addMenu(tr("Справка"));
+	helpMenu = menuBar()->addMenu(tr("Help"));
 	helpMenu->addAction(aboutAct);
 }

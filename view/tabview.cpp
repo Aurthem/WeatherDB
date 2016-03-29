@@ -44,14 +44,6 @@ TabView::TabView(QWidget *parent)
 	adapter=new HorizontalProxyModel(filter);
 	adapter->setSourceModel(filter);
 
-//	filter=new FilterProxyModel(this);
-//	filter->setSourceModel(model);
-//	proxy=new AddRowProxyModel(filter);
-//	proxy->setSourceModel(filter);
-//	adapter=new HorizontalProxyModel(proxy);
-//	adapter->setSourceModel(proxy);
-
-//	view=new FreezeTableWidget(filter);
 	view=new FreezeTableWidget(adapter,this);
 
 	view->verticalHeader()->setDragEnabled(true);
@@ -60,7 +52,6 @@ TabView::TabView(QWidget *parent)
 	view->verticalHeader()->setDragDropMode(QAbstractItemView::InternalMove);
 
 	statusBar=new QStatusBar(this);	//subclass this and join all lambdas there (maybe?)
-//	statusBar->showMessage("Test message",3000);
 	statusBar->setSizeGripEnabled(false);
 	statusBar->hide();
 	connect(statusBar,&QStatusBar::messageChanged,[this](const QString & message){
@@ -68,16 +59,15 @@ TabView::TabView(QWidget *parent)
 			if(!showStatusMessage()) statusBar->hide();
 		} else statusBar->show();
 	});
-	//status bar should show Filters: <Names> | Hidden: <Names>
+	//status bar should show: Filters: <Names> | Hidden: <Names>
 	//tabs could be promoted to separate windows - should still have status bars
 
 	DBDelegate *dbDelegate;
 	dbDelegate=qobject_cast<DBDelegate*>(view->itemDelegate());
 	if(dbDelegate) {
 		connect(dbDelegate,&DBDelegate::validatedEditorCreated,[this](const QString &validatorMessage){
-//			qDebug()<<limits;
-//			statusBar->showMessage(tr("Пределы: %1 %2").arg(limits.first.toInt()).arg(limits.second.toInt()));
-			statusBar->showMessage(tr("Пределы: %1").arg(validatorMessage));
+//			statusBar->showMessage(tr("Limits: %1 %2").arg(limits.first.toInt()).arg(limits.second.toInt()));
+			statusBar->showMessage(tr("Limits: %1").arg(validatorMessage));
 		});
 		connect(dbDelegate,&DBDelegate::closeEditor,[this]{
 			statusBar->showMessage(QString());
@@ -86,104 +76,45 @@ TabView::TabView(QWidget *parent)
 	dbDelegate=qobject_cast<DBDelegate*>(view->getFrozenItemDelegate());
 	if(dbDelegate) {
 		connect(dbDelegate,&DBDelegate::validatedEditorCreated,[this](const QString &validatorMessage){
-			statusBar->showMessage(tr("Пределы: %1").arg(validatorMessage));
+			statusBar->showMessage(tr("Limits: %1").arg(validatorMessage));
 		});
 		connect(dbDelegate,&DBDelegate::closeEditor,[this]{
 			statusBar->showMessage(QString());
 		});
 	}
 
-//	connect(adapter,&HorizontalProxyModel::dataChanged,
-//					view,&FreezeTableWidget::resizeRowsToContents);
-//	connect(adapter,&HorizontalProxyModel::columnsInserted,
-//					view,&FreezeTableWidget::handleColumnsInserted);	//update on insertion
-//	connect(adapter,&HorizontalProxyModel::layoutChanged,
-//					view,&FreezeTableWidget::resizeColumnsToContents);	//on sort filter change
-
-//	connect(adapter,&HorizontalProxyModel::columnsInserted,
-//					view->horizontalHeader(),&QHeaderView::doItemsLayout);
-//	connect(adapter,&HorizontalProxyModel::columnsRemoved,
-//					view->horizontalHeader(),&QHeaderView::doItemsLayout);	//works well without these now
-
-//	connect(adapter,SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)),
-//					view,SLOT(resizeRowsToContents()));	//adapter emits this after vertical representation is set
-//	connect(proxy,SIGNAL(rowsInserted(QModelIndex,int,int)),
-//						view->horizontalHeader(),SLOT(sectionsInserted(QModelIndex,int,int)));
-//	connect(proxy,SIGNAL(rowsInserted(QModelIndex,int,int)),
-//						filter,SLOT(invalidate()));
-//	connect(proxy,SIGNAL(rowsRemoved(QModelIndex,int,int)),
-//					filter,SLOT(invalidate()));
-//	connect(proxy,SIGNAL(rowsRemoved(QModelIndex,int,int)),
-//					view->horizontalHeader(),SLOT(doItemsLayout()));
-
-//	connect(model,&QSqlTableModel::rowsRemoved,
-//					view->selectionModel(),&QItemSelectionModel::reset);
-//	connect(model,&QSqlTableModel::rowsAboutToBeRemoved,[this]{
-//		QPoint pos(view->viewport()->width()+view->verticalHeader()->width()+1,view->viewport()->height()+view->horizontalHeader()->height()+1);
-//		QMouseEvent mEvnPress(QEvent::MouseButtonPress, pos, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-//		QMouseEvent mEvnRelease(QEvent::MouseButtonRelease, pos, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-//		QCoreApplication::sendEvent(view->viewport(),&mEvnPress);
-//		QCoreApplication::sendEvent(view->viewport(),&mEvnRelease);
-//	});
-//		connect(adapter,&HorizontalProxyModel::columnsRemoved,
-//						view,&FreezeTableWidget::handleSelectionOnRemove);
-
-	//this actually caused persistent index problems with selection, all works without it
-//	connect(proxy,&AddRowProxyModel::rowsInserted,filter,&FilterProxyModel::invalidate);
-//	connect(proxy,&AddRowProxyModel::rowsRemoved,filter,&FilterProxyModel::invalidate);
-//	connect(proxy,&AddRowProxyModel::rowsRemoved,[this](const QModelIndex & parent, int first, int last){
-//		qDebug()<<parent<<first<<last;
-//	});
-
-//	view->setSortingEnabled(true);
-//	view->sortByColumn(1,Qt::AscendingOrder);
-//	filter->setSortRole(Qt::UserRole);
-//	connect(filter,&FilterProxyModel::layoutChanged,view,&FreezeTableWidget::updateFrozenTableGeometry);
-//	connect(adapter,&HorizontalProxyModel::dataChanged,[this]{
-//		filter->sort(1,Qt::AscendingOrder);
-//	});
-//	connect(proxy,&AddRowProxyModel::rowsInserted,[this]{
-//		filter->sort(1,Qt::AscendingOrder);
-//	});
-
-//		connect(filter,SIGNAL(layoutChanged(QList<QPersistentModelIndex>,QAbstractItemModel::LayoutChangeHint)),
-//						view,SLOT(resizeColumnsToContents()));
 	filter->setDynamicSortFilter(true);
 	filter->sort(2,Qt::AscendingOrder);
+
 //---main menu dialog---
-	QPushButton *submitButton = new QPushButton(tr("Сохранить"));
+	QPushButton *submitButton = new QPushButton(tr("Save"));
 	submitButton->setDefault(true);
 	submitButton->setShortcut(QKeySequence::Save);//Qt::CTRL+Qt::Key_S);
-	submitButton->setStatusTip(tr("Сохранить изменения в базу данных"));
-	QPushButton *revertButton = new QPushButton(tr("Отбросить"));
+	submitButton->setStatusTip(tr("Save changes to the database"));
+	QPushButton *revertButton = new QPushButton(tr("Discard"));
 	revertButton->setShortcut(Qt::CTRL+Qt::Key_R);
-	revertButton->setStatusTip(tr("Отбросить несохранённые изменения"));
+	revertButton->setStatusTip(tr("Discard unsaved changes"));
 
 	connect(submitButton, SIGNAL(clicked()), this, SLOT(submit()));
-//	connect(revertButton, SIGNAL(clicked()), model, SLOT(revertAll()));
 	connect(revertButton,&QPushButton::clicked, [this]{ //model,&QSqlTableModel::revertAll);
 		rowIdsToRemove.clear();
 		model->revertAll();
 	});
-//	connect(revertButton,&QPushButton::clicked,[this]{
-//		view->handleSelectionOnRemove();
-//		model->revertAll();
-//	});
 
-	QPushButton *searchButton = new QPushButton(tr("Искать"));
+	QPushButton *searchButton = new QPushButton(tr("Search"));
 	searchButton->setShortcut(QKeySequence::Find);//Qt::CTRL+Qt::Key_F);
-	searchButton->setStatusTip(tr("Выбрать столбцы с совпадающими значениями"));
-	QPushButton *hideButton = new QPushButton(tr("Скрыть"));
+	searchButton->setStatusTip(tr("Show columns with matching values"));
+	QPushButton *hideButton = new QPushButton(tr("Hide"));
 	hideButton->setShortcut(Qt::CTRL+Qt::Key_H);
-	hideButton->setStatusTip(tr("Скрыть отмеченные строки"));
-	QPushButton *showAllButton = new QPushButton(tr("Показать все"));
-	showAllButton->setStatusTip(tr("Показать все скрытые строки"));
-	QPushButton *alterRowButton=new QPushButton(tr("Изменить"));
-	alterRowButton->setStatusTip(tr("Изменить параметры выделенных строк"));
-	QPushButton *addRowButton=new QPushButton(tr("Добавить"));
-	addRowButton->setStatusTip(tr("Добавить новую строку в базу данных"));
-	QPushButton *removeRowButton=new QPushButton(tr("Удалить"));
-	removeRowButton->setStatusTip(tr("Удалить выделенные строки из базы данных"));
+	hideButton->setStatusTip(tr("Hide selected rows"));
+	QPushButton *showAllButton = new QPushButton(tr("Show all"));
+	showAllButton->setStatusTip(tr("Show all hidden rows"));
+	QPushButton *alterRowButton=new QPushButton(tr("Alter"));
+	alterRowButton->setStatusTip(tr("Alter parameters of selected rows"));
+	QPushButton *addRowButton=new QPushButton(tr("Add"));
+	addRowButton->setStatusTip(tr("Add new row to the database"));
+	QPushButton *removeRowButton=new QPushButton(tr("Remove"));
+	removeRowButton->setStatusTip(tr("Remove selected rows from the database"));
 
 	connect(hideButton,SIGNAL(clicked(bool)), view,SLOT(handleRowsHidden()));
 	connect(showAllButton,SIGNAL(clicked(bool)), view,SLOT(handleRowsShown()));
@@ -210,7 +141,6 @@ TabView::TabView(QWidget *parent)
 	});
 	MainWindow* mainWindow=0;
 	for(QWidget* tmp: QApplication::topLevelWidgets()) {
-//		qDebug()<<tmp;
 		if(	(mainWindow=qobject_cast<MainWindow*>(tmp))	) break;
 	}
 	if(mainWindow) {
@@ -218,7 +148,7 @@ TabView::TabView(QWidget *parent)
 			TabHolder* tabHolder=qobject_cast<TabHolder*>(mainWindow->centralWidget());
 			if(tabHolder && tabHolder->currentWidget()==this) {
 				filter->compileNamedFilters(source);
-				statusBar->showMessage(tr("Фильтр: составной"));	//is erased with overlapping filters, change later
+				statusBar->showMessage(tr("Filter: compound"));	//is erased with overlapping filters, change later
 			}	//only for active tab, don't search in others
 		});
 	}
@@ -238,9 +168,9 @@ TabView::TabView(QWidget *parent)
 
 	connect(removeRowButton,&QPushButton::clicked,[this]{
 		QMessageBox::StandardButton clicked = QMessageBox::warning(this,
-			tr("Подтверждение удаления"),tr("<center>Эта операция удалит строку из базы данных.<br>"
-																			"Все данные в соответствующем поле <strong>каждого</strong> столбца<br>"
-																			"будут <strong><u>безвозвратно</u></strong> утеряны. Продолжить?</center>"),
+			tr("Confirm removal"),tr("<center>This operation will remove rows from the database.<br>"
+																			"All data in the corresponding field of <strong>every</strong> column<br>"
+																			"will be <strong><u>irrevocably</u></strong> lost. Continue?</center>"),
 																	 QMessageBox::Ok | QMessageBox::Cancel,
 																	 QMessageBox::Cancel);
 		if(clicked!=QMessageBox::Ok) return;
@@ -248,36 +178,23 @@ TabView::TabView(QWidget *parent)
 		if(removeColumns(checkedList)) {
 			emit customColumnsRemoved(checkedList);
 			proxy->clearRowData();
-//			view->reset();
-//			view->setRowHidden(0,true);
-//			view->handleRowsHidden();
-//			view->handleRowsShown();
-//			emit view->verticalHeader()->geometriesChanged();
 		}
 	});
-//	const Database &tmpDatabase=Database::getInstance();
 	connect(view,&FreezeTableWidget::markRowsForRemoval,[this](const QSet<int> &rowIdsRemoved){
 		rowIdsToRemove.unite(rowIdsRemoved);
-//		for(int row: rowsRemoved) {
-//			rowsToRemove.insert(row);
-//		}
 	});
 	connect(this,&TabView::customRowsRemoved,
 					&Database::getInstance(), &Database::handleRowsRemoved);
 	connect(this,&TabView::customColumnsRemoved,
 					&Database::getInstance(), &Database::handleColumnsRemoved);
 
-	//QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Vertical);
-//	buttonBox->addButton(submitButton, QDialogButtonBox::ApplyRole);
-//	buttonBox->addButton(revertButton, QDialogButtonBox::ResetRole);
-//	buttonBox->addButton(searchButton, QDialogButtonBox::ActionRole);
 	QVBoxLayout* dialogDBLayout=new QVBoxLayout();
 	dialogDBLayout->addWidget(submitButton);
 	dialogDBLayout->addWidget(revertButton);
-	CollapsibleGroupBox *dbControls=new CollapsibleGroupBox(tr("База данных"));
+	CollapsibleGroupBox *dbControls=new CollapsibleGroupBox(tr("Database"));
 	dbControls->setCollapsive(true);
 	dbControls->setLayout(dialogDBLayout);
-	dbControls->setStatusTip(tr("Управление базой данных"));
+	dbControls->setStatusTip(tr("Database controls"));
 
 	QVBoxLayout* dialogLayout=new QVBoxLayout();
 	dialogLayout->addWidget(searchButton);
@@ -286,7 +203,7 @@ TabView::TabView(QWidget *parent)
 
 	advancedOptions=new QWidget;
 	advancedOptions->setObjectName("advancedOptions");	//for collapsible group visibility
-	advancedOptions->setProperty("isAdvancedVisible",advancedOptionsEnabled);	//there is property 'visible'
+	advancedOptions->setProperty("isAdvancedVisible",advancedOptionsEnabled);	//there is property 'visible' already
 //	advancedOptions->setVisible(advancedOptionsEnabled);
 	//the geometry should be known on setLayout (to setGeometry properly)
 	//but setVisible flashes widget on screen as it has no parent at this point - thus hide()
@@ -296,8 +213,6 @@ TabView::TabView(QWidget *parent)
 	QFrame *lineSeparator=new QFrame();
 	lineSeparator->setFrameShape(QFrame::HLine);
 	lineSeparator->setFrameShadow(QFrame::Sunken);
-//	dialogLayout->addWidget(lineSeparator);
-//	dialogLayout->addWidget(removeRowButton);
 	advancedLayout->addWidget(lineSeparator);
 	advancedLayout->addWidget(alterRowButton);
 	advancedLayout->addWidget(addRowButton);
@@ -309,75 +224,41 @@ TabView::TabView(QWidget *parent)
 		connect(mainWindow,&MainWindow::toggledAdvancedOptions,this,&TabView::toggleAdvancedOptions);
 	}
 
-	CollapsibleGroupBox *allColumnsControls=new CollapsibleGroupBox(tr("Строки"));
+	CollapsibleGroupBox *allColumnsControls=new CollapsibleGroupBox(tr("Rows"));
 	allColumnsControls->setCollapsive(true);
 	allColumnsControls->setLayout(dialogLayout);
-	allColumnsControls->setStatusTip(tr("Управление строками таблицы"));
+	allColumnsControls->setStatusTip(tr("Row controls"));
 
 //---new row submenu---
-	QPushButton *submitRowButton = new QPushButton(tr("Записать"));
-	submitRowButton->setStatusTip(tr("Записать новый столбец в таблицу"));
-	QPushButton *clearRowButton = new QPushButton(tr("Очистить"));
-	clearRowButton->setStatusTip(tr("Убрать введённые в новый столбец значения"));
+	QPushButton *submitRowButton = new QPushButton(tr("Write"));
+	submitRowButton->setStatusTip(tr("Write new column to the table"));
+	QPushButton *clearRowButton = new QPushButton(tr("Clear"));
+	clearRowButton->setStatusTip(tr("Clear entered data from the new column"));
 
 	connect(submitRowButton, SIGNAL(clicked()), proxy, SLOT(submitRow()));
-//	connect(submitRowButton,&QPushButton::clicked,[this]{
-//		model->insertRows(0,1);
-//	});
+
 //	not great - multiple proxies from tabs listen to one signal, latest writes
 //	connect(model,&QSqlTableModel::primeInsert,proxy,&AddRowProxyModel::populateRecord);
+
 	connect(clearRowButton, SIGNAL(clicked()), proxy, SLOT(clearRowData()));
 
-	CollapsibleGroupBox *newRowControls=new CollapsibleGroupBox(tr("Новый столбец"));
+	CollapsibleGroupBox *newRowControls=new CollapsibleGroupBox(tr("New column"));
 	newRowControls->setCollapsive(true);
-	newRowControls->setStatusTip(tr("Управление новым столбцом (сворачивается)"));
+	newRowControls->setStatusTip(tr("New column controls (collapsible)"));
 	QVBoxLayout *innerLayout=new QVBoxLayout();
 	innerLayout->addWidget(submitRowButton);
 	innerLayout->addWidget(clearRowButton);
 	newRowControls->setLayout(innerLayout);
 	connect(newRowControls, SIGNAL(toggled(bool)), view, SLOT(setFrozenVisible(bool)));
-//	connect(newRowControls, SLOT(setCollapsed(bool)), view, SLOT(setFrozenHidden(bool)));
-
-
-//	buttonBox->addButton(quitButton, QDialogButtonBox::RejectRole);
-//	buttonBox->setOrientation(Qt::Vertical);
-//	connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
-
-//	QHBoxLayout *innerLayout = new QHBoxLayout;
-//	innerLayout->addWidget(new QCheckBox("test1"));
-//	innerLayout->addWidget(new QLabel("ess11"));
-
-/*	QListWidget *lv=new QListWidget();
-	for(int i=0; i<5; ++i) {
-		QListWidgetItem *lvitm=new QListWidgetItem();
-		HeaderItem *hitm=new HeaderItem();
-		lvitm->setSizeHint(QSize(0,45));//QSize(0,hitm->height()));
-		lv->addItem(lvitm);
-		lv->setItemWidget(lvitm,hitm);
-	}
-	lv->setDragDropMode(QAbstractItemView::InternalMove);
-	lv->setFrameShape(QFrame::NoFrame);
-//	lv->setSelectionMode(QListWidget::NoSelection);
-	lv->setStyleSheet("QListView::item:hover {"
-											"background-color: rgba(0, 128, 0, 0);}"
-										"QListView::item:selected:active, QListView::item:selected {"
-											"background-color: rgba(128,0,0,0);}"
-										"QListView::item:focus {outline:none;}"
-										);
-	lv->setFocusPolicy(Qt::NoFocus);
-*/
 
 //---layout---
 	QVBoxLayout *sidebarLayout = new QVBoxLayout;
 	newRowControls->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
 	sidebarLayout->addWidget(newRowControls);
-//	qDebug()<<newRowControls->size().width();
-	sidebarLayout->addStrut(fontInfo().pixelSize()*10.5);	//115 - to avoid size change when groups are collapsed
+	sidebarLayout->addStrut(fontInfo().pixelSize()*10.5);	//115 - to avoid size change when groupboxes are collapsed
 	sidebarLayout->addStretch(0);
 //	sidebarLayout->addSpacerItem(new QSpacerItem(115,10,QSizePolicy::Minimum,QSizePolicy::Expanding));
 //	buttonBox->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
-//	sidebarLayout->addWidget(buttonBox);
-//	sidebarLayout->addLayout(dialogLayout);
 	sidebarLayout->addWidget(allColumnsControls);
 	sidebarLayout->addWidget(dbControls);
 //	sidebarLayout->setSpacing(10);
@@ -387,11 +268,8 @@ TabView::TabView(QWidget *parent)
 	viewLayout->addWidget(statusBar);
 	QHBoxLayout *mainLayout = new QHBoxLayout;
 	mainLayout->addLayout(sidebarLayout);
-//	mainLayout->addWidget(view);
 	mainLayout->addLayout(viewLayout);
 	setLayout(mainLayout);
-
-//	setWindowTitle(tr("Tab Dialog"));
 }
 void TabView::setVerticalNumberRepresentation(bool vertical) {
 	adapter->setVerticalRepresentation(vertical);
@@ -406,14 +284,12 @@ void TabView::toggleAdvancedOptions(bool isAdvanced) {
 //	}
 }
 void TabView::restoreVhState(const QPair<QMap<int,int>, QList<int> > &vhState) {
-//	view->verticalHeader()->restoreState(vhState.first);
 	for(int visualIdx=0; visualIdx<vhState.first.size();++visualIdx) {	//map is sorted by key
 		view->verticalHeader()->moveSection(
 					view->verticalHeader()->visualIndex(vhState.first.value(visualIdx)),visualIdx);
 	}
 	statusMessage.second.clear();
 	for(int logicalIdx: vhState.second) {
-//		view->verticalHeader()->hideSection(logicalIdx);
 		view->setRowHidden(logicalIdx,true);	//also hides in frozenTableView
 		if(logicalIdx==0) continue;	//skip id
 		if(!statusMessage.second.isNull()) statusMessage.second.append(", ");
@@ -422,7 +298,6 @@ void TabView::restoreVhState(const QPair<QMap<int,int>, QList<int> > &vhState) {
 	showStatusMessage();
 }
 QPair<QMap<int,int>, QList<int> > TabView::saveVhState() const {
-//	result.first=view->verticalHeader()->saveState();
 	QPair<QMap<int,int>, QList<int> > result;	//visual, logical, hiddenLogical
 	for(int logicalIdx=0; logicalIdx<view->verticalHeader()->count(); ++logicalIdx) {
 		result.first.insert(view->verticalHeader()->visualIndex(logicalIdx),logicalIdx);
@@ -442,20 +317,17 @@ bool TabView::showStatusMessage(void) const {
 	if(statusMessage.first.isNull() && statusMessage.second.isNull()) return false;
 	QString tmpMessage;
 	if(!statusMessage.first.isNull())
-		tmpMessage.append(tr("Фильтр: ")+statusMessage.first
+		tmpMessage.append(tr("Filter: ")+statusMessage.first
 											+(!statusMessage.second.isNull()?"; ":""));
 	if(!statusMessage.second.isNull())
-		tmpMessage.append(tr("Скрыто: ")+statusMessage.second);
+		tmpMessage.append(tr("Hidden: ")+statusMessage.second);
 	statusBar->showMessage(tmpMessage);
 	return true;
 }
 
 void TabView::submit() {
-//	QSqlDatabase tmp_db=Database::getInstance().model->database();
-//	if(model->record(0).isEmpty()) model->removeRow(0);
 	model->database().transaction();
 	if (model->submitAll()) {
-//	if (model->submit()) {
 		model->database().commit();
 		if(!rowIdsToRemove.isEmpty()) {
 			emit customRowsRemoved(rowIdsToRemove);
@@ -467,8 +339,6 @@ void TabView::submit() {
 			tr("The database reported an error: %1")
 			.arg(model->lastError().text()));
 	}
-
-//	model->insertRecord(0,model->record());
 }
 bool TabView::removeColumns(const QList<int> &columns) {	//SQLite doesn't support direct column removal
 	if(columns.empty()) return false;
@@ -490,8 +360,6 @@ bool TabView::removeColumns(const QList<int> &columns) {	//SQLite doesn't suppor
 			}
 		}
 	}
-//	qDebug()<<newFields;
-//	qDebug()<<newTypedFields;
 	model->database().transaction();
 	QSqlQuery query(model->database());
 	bool queryResult=true;
@@ -516,8 +384,7 @@ bool TabView::removeColumns(const QList<int> &columns) {	//SQLite doesn't suppor
 	return queryResult;
 }
 void TabView::handleAlterColumns(bool isDBchanged, const QList<QList<QVariant> > &newHeaders) {
-	//newHeaders: oldIdx, if(isDBchanged)(newIdx,name), limits/colors
-//	qDebug()<<isDBchanged<<newHeaders;
+//newHeaders: oldIdx, if(isDBchanged)(newIdx,name), limits/colors
 	if(newHeaders.isEmpty()) return;
 	QMap<QString,QList<QVariant> > &settingsDB=Database::getInstance().settings.database;	//could change
 	QMap<QString,int> limitsMapping;	//needed for changing limits after indexes had been changed
@@ -531,7 +398,7 @@ void TabView::handleAlterColumns(bool isDBchanged, const QList<QList<QVariant> >
 			indexMapping.insert(idx,idx);
 			uniqueNames.append(emptyRecord.fieldName(idx).toLower());
 		}
-		QMap<int, int> headerMapping;	//(oldIdx->headerIdx)
+		QMap<int, int> headerMapping;	//(oldIdx -> headerIdx)
 		int headerIndex=0;
 		QMap<int,int> newToOld;	//for sorting
 		//insertMulti reverses indexes with the same newIdx, but second insertMulti fixes it
@@ -548,13 +415,6 @@ void TabView::handleAlterColumns(bool isDBchanged, const QList<QList<QVariant> >
 			//+1 here because new item should go below old one (more intuitive)
 //			uniqueNames[itr.value()].clear();	//switching names is too complicated of a case, two calls with temp names should do
 		}
-//		for(int idx: newToOld) {
-//			int oldIdx=newHeaders.value(headerMapping.value(idx)).value(0).toInt(),
-//					newIdx=newHeaders.value(headerMapping.value(idx)).value(1).toInt();
-//			if(newIdx<1) newIdx=1;	//don't allow to go above ID column
-//			indexMapping.remove(oldIdx);	//should return 1
-//			indexMapping.insertMulti(newIdx,oldIdx);	//newest inserted go first in values()
-//		}
 		QList<int> ordering=indexMapping.values();
 		QMap<int, QString> changedNames;	//to update settings after commit
 		for(int idx=0; idx<emptyRecord.count();++idx) {
@@ -585,7 +445,6 @@ void TabView::handleAlterColumns(bool isDBchanged, const QList<QList<QVariant> >
 				newTypedFields.append(fieldType);
 			}
 		}
-//		qDebug()<<newFields<<newTypedFields<<oldFields;
 
 		model->database().transaction();
 		QSqlQuery query(model->database());
@@ -612,7 +471,6 @@ void TabView::handleAlterColumns(bool isDBchanged, const QList<QList<QVariant> >
 				} else ++itr;
 			}
 			settingsDB.unite(valuesToInsert);
-//			qDebug()<<changedNames<<valuesToInsert;
 
 			Database::getInstance().settings.db_create["weather"]=newTypedFields;
 		} else {
@@ -640,7 +498,7 @@ void TabView::handleAlterColumns(bool isDBchanged, const QList<QList<QVariant> >
 	}
 }
 void TabView::handleAddColumn(const QList<QVariant> &record) {
-	//record: newIdx, name, isMark, type, limits/colors, default
+//record: newIdx, name, isMark, type, limits/colors, default
 	QString columnName=record.value(1).toString();
 	if(columnName.isEmpty()) return;
 	QSqlRecord emptyRecord=model->record();
@@ -683,16 +541,9 @@ void TabView::handleAddColumn(const QList<QVariant> &record) {
 	if(queryResult) {
 		Database::getInstance().settings.database.insert(columnName,dbList);
 	}
-//	qDebug()<<columnName<<dbList;
-//	qDebug()<<defaultValue.toString()<<queryString;
 }
 
-TabHolder::TabHolder(QWidget *parent) : QTabWidget(parent), vertical(true)
-{
-//	QVBoxLayout *mainLayout = new QVBoxLayout;
-//	mainLayout->addWidget(tabWidget);
-//	setLayout(mainLayout);
-
+TabHolder::TabHolder(QWidget *parent) : QTabWidget(parent), vertical(true) {
 	setMovable(true);
 	setTabsClosable(true);
 	setUsesScrollButtons(true);
@@ -708,23 +559,14 @@ TabHolder::TabHolder(QWidget *parent) : QTabWidget(parent), vertical(true)
 
 	tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(tabBar(),&QTabBar::customContextMenuRequested,this,&TabHolder::customTabMenuRequested);
-
-//	tabWidget->addTab(new QLabel("You can add tabs by pressing <b>\"+\"</b>"), QString());
-//	tabWidget->setTabEnabled(0, false);
-//	tabWidget->tabBar()->setTabButton(0, QTabBar::RightSide, tb);
 }
 void TabHolder::customTabMenuRequested(const QPoint &pos) {
-//	QMenu *menu=new QMenu(this);
-//	menu->addAction(new QAction("Action 1", this));
-//	menu->addAction(new QAction("Action 2", this));
-//	menu->addAction(new QAction("Action 3", this));
-//	menu->popup(mapToGlobal(pos));
 	QMenu contextMenu(tr("Tab context menu"), this);
-	QAction action1("Переименовать", this);
+	QAction action1(tr("Rename"), this);
 	connect(&action1, &QAction::triggered, [this,&pos]{
 		int idx=tabBar()->tabAt(pos);
 		bool ok;
-		QString tmp_str=QInputDialog::getText(this,tr("Введите имя вкладки"),tr("Имя вкладки"),
+		QString tmp_str=QInputDialog::getText(this,tr("Input tab name"),tr("Tab name"),
 																					QLineEdit::Normal,tabText(idx),&ok);
 		if(ok && !tmp_str.isEmpty())
 			setTabText(idx,tmp_str);
@@ -733,7 +575,6 @@ void TabHolder::customTabMenuRequested(const QPoint &pos) {
 	contextMenu.exec(mapToGlobal(pos));
 }
 void TabHolder::addTab(void) {
-
 	TabView* tmp=new TabView();
 	tmp->setVerticalNumberRepresentation(vertical);
 
@@ -742,23 +583,10 @@ void TabHolder::addTab(void) {
 		tmp->restoreVhState(currentTab->saveVhState());
 	}
 
-//	QTabWidget::addTab(tmp,"Новая вкладка");
-	QTabWidget::insertTab(currentIndex()+1,tmp,tr("Новая вкладка"));
-//	tmp->setContextMenuPolicy(Qt::CustomContextMenu);
-//	connect(tmp,&TabView::customContextMenuRequested,this,&TabHolder::customTabMenuRequested);
-
-//	connect(tmp,&TabView::customContextMenuRequested,[this](const QPoint &pos){
-//			QMenu *menu=new QMenu(this);
-//			menu->addAction(new QAction("Action 1", this));
-//			menu->addAction(new QAction("Action 2", this));
-//			menu->addAction(new QAction("Action 3", this));
-//			menu->popup(mapToGlobal(pos));
-//		});
+	QTabWidget::insertTab(currentIndex()+1,tmp,tr("New tab"));
 }
 
 void TabHolder::removeTabView(int idx) {
-//	int height=tabWidget->cornerWidget()->height();
-
 	QWidget* tmp=widget(idx);
 	removeTab(idx);
 	delete tmp;
@@ -766,18 +594,12 @@ void TabHolder::removeTabView(int idx) {
 	//if no tabs left
 	if(!count()) {
 		addTab();	//revise later
-//		QTabBar* tabBar=tabWidget->findChild<QTabBar*>();
-//		if(tabBar) {
-//			QMessageBox *mb=new QMessageBox(QMessageBox::Information,"it's here",
-//																			"here it is");
-//			mb->show();
-//		}
 	}
 }
 
 void TabHolder::handleNumberRepresentationToggle(bool vert) {
 	for(int idx=0; idx<count(); ++idx) {
-		TabView* tmp=qobject_cast<TabView*>(widget(idx));	//TabView should have Q_OBJECT!
+		TabView* tmp=qobject_cast<TabView*>(widget(idx));	//TabView should have Q_OBJECT
 		if(tmp) tmp->setVerticalNumberRepresentation(vert);
 	}
 	vertical=vert;
