@@ -5,7 +5,6 @@
 #-------------------------------------------------
 
 QT       += core gui sql
-#LIBS += -ldbghelp
 
 CONFIG  += c++11
 
@@ -13,7 +12,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = WeatherDB
 TEMPLATE = app
-
 
 SOURCES += main.cpp\
     mainwindow.cpp \
@@ -44,7 +42,7 @@ HEADERS  += mainwindow.h \
 	dialogs/changeadddialog.h \
 	dialogs/customsearchdialog.h
 
-VERSION = 0.9.9.0
+VERSION = 1.0.0.0
 #QMAKE_TARGET_COMPANY = company
 QMAKE_TARGET_PRODUCT = WeatherDB
 QMAKE_TARGET_DESCRIPTION = "Weather Database"
