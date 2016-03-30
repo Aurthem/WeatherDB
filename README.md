@@ -1,7 +1,7 @@
-# WeatherDB
+п»ї# WeatherDB
 Qt-based graphical interface for SQLite weather database
 
-Прочитать [на русском](README.ru.md)
+РџСЂРѕС‡РёС‚Р°С‚СЊ [РЅР° СЂСѓСЃСЃРєРѕРј](README.ru.md)
 
 ## Features
 - Model/view architecture
