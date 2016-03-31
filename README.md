@@ -1,5 +1,5 @@
 ﻿# WeatherDB
-Qt-based graphical interface for SQLite weather database
+Qt-based graphical interface for SQLite weather database  
 Versions used: Qt 5.5.1, MinGW 4.9.2, SQLite 3.8.10.2
 
 Прочитать [на русском](README.ru.md)
