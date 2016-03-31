@@ -1,5 +1,6 @@
 ﻿# WeatherDB
 Qt-based graphical interface for SQLite weather database
+Versions used: Qt 5.5.1, MinGW 4.9.2, SQLite 3.8.10.2
 
 Прочитать [на русском](README.ru.md)
 
@@ -29,6 +30,7 @@ Qt-based graphical interface for SQLite weather database
 
 #### Notes
   - [AddRowProxyModel](model/addrowproxymodel.h) and [HorizontalProxyModel](model/horizontalproxymodel.h) use "protected->public" hack to expose `QAbstractItemModel`'s `createIndex()` for completeness of implementation
+  - [Qt 5.5.1 bug](https://bugreports.qt.io/browse/QTBUG-50171) encountered and fixed by reimplementing responsible private method and connecting to the new one
 
 ## Suggestions
 Features to implement
@@ -36,6 +38,7 @@ Features to implement
 - Lock/save tabs, restore recent tabs
 - Undo/redo actions
 - Language switching
+- Interface cleanup: widget sizes, styling, font scaling
 
 ### Static compilation
 1. Install Qt: <http://www.qt.io/download/> (Qt 5.5.1 and 5.6.0 with MinGW 4.9.2 were checked to work)
